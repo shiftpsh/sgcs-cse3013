@@ -1,0 +1,65 @@
+* {
+	box-sizing: border-box;
+	-webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    font-family: 'Muli', 'Noto Sans KR', 'Noto Sans JP', 'NanumBarunGothic', 'NanumGothic', 'Malgun Gothic', sans-serif;
+    font-weight: 400;
+    
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	overflow-x: hidden;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	overflow-x: hidden;
+}
+
+b {
+	font-weight: 700;
+}
+
+strike {
+	opacity: 0.5;
+}
+
+.contents {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.contents a {
+	color: #ff7784;
+	text-decoration: none;
+}
+
+h1 {
+    letter-spacing: -1.5px;
+}
+
+span.subtitle {
+    font-weight: bold;
+}
+
+.selfie {
+    width: 250px;
+    height: 250px;
+    float: right;
+}
+
+p.hr {
+	margin: 16px 0;
+	height: 0;
+	width: 100%;
+	border-bottom: 1px dashed #ddd;
+}

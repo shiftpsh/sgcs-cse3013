@@ -1,0 +1,83 @@
+
+\documentclass[runningheads]{llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline WEB-1 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실험 과정을 통해서 익힌 HTML을 사용하여 자신의 홈페이지를 직접 제작해 본다.
+
+\section{최소 요구 사항}
+\begin{enumerate}
+	\item \texttt{frame}을 이용한 메뉴 방식 구조
+	\item 자신의 사진을 포함한 프로필(자기 소개) 페이지
+	\item 자신의 관심 분야 및 유용한 정보 소개 페이지
+	\item 자신의 이번 학기 수강 시간표 페이지(테이블로 작성)
+	\item 예비 보고서에서 추가로 조사한 기술을 사용
+	\item \texttt{http://cs.sogang.ac.kr/\textasciitilde{}자신의 계정/}으로 초기화면이 나타나야 함.
+\end{enumerate}
+
+\section{작성 과정 기술}
+
+\subsection{홈페이지 구조}
+% 각 문서 파일과 그들의 링크 구조를 Top-Down 형태로 그리시오
+\begin{tikzpicture}[nodes = {draw,align=center}]
+
+\node[draw] (main) at (3.25,2) {\textbf{메인 페이지}\\\texttt{index.html}};
+
+\node[draw] (cv) at (0,0) {\textbf{자기 소개}\\\texttt{cv.html}};
+\node[draw] (interests) at (3,0) {\textbf{관심 분야 소개}\\\texttt{interests.html}};
+\node[draw] (timetable) at (6.5,0) {\textbf{수강 시간표}\\\texttt{timetable.html}};
+
+\draw[<->,draw=black] (main) to (cv);
+\draw[<->,draw=black] (main) to (interests);
+\draw[<->,draw=black] (main) to (timetable);
+
+\draw[<->,draw=black,in=320,out=220] (timetable) to (cv);
+\draw[<->,draw=black] (cv) to (interests);
+\draw[<->,draw=black] (interests) to (timetable);
+\end{tikzpicture}
+
+\subsection{홈페이지 레이아웃 디자인}
+% 메인 페이지의 레이아웃을 간략히 그리고 설명하시오
+
+\subsection{HTML 작성 과정}
+% 교재에 있는 내용을 자신의 홈페이지에 어떻게 적용하였는지 항목별로 적으시오
+% 교재에 없는 내용을 어떻게 적용하였는지 항목별로 적으시오
+
+\subsection{정리}
+% 기존 유명 홈페이지와 비교하여, 자신의 홈페이지의 장점과 단점을 쓰시오
+% 장점
+% 단점
+  
+\end{document}
