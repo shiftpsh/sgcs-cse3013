@@ -63,3 +63,59 @@ p.hr {
 	width: 100%;
 	border-bottom: 1px dashed #ddd;
 }
+
+th, td {
+	padding: 8px;
+	border-bottom: 1px solid #ddd;
+	vertical-align: top;
+}
+
+table.time_table {
+	width: 100%;
+	border-spacing: 0;
+    border-collapse: collapse;
+}
+
+table.time_table tr {
+	border-bottom: 1px solid #ddd;
+}
+
+table.time_table tr th:first-of-type,
+table.time_table tr td:first-of-type {
+	border-right: 1px solid #ddd;
+	vertical-align: top;
+}
+
+tr.time_row {
+	height: 100px;
+}
+
+.tt_class_1 {
+	background: #ff7784;
+	font-weight: bold;
+}
+
+.tt_class_2 {
+	background: #e56b76;
+	font-weight: bold;
+}
+
+.tt_class_3 {
+	background: #ff8490;
+	font-weight: bold;
+}
+
+.tt_class_4 {
+	background: #ffadb5;
+	font-weight: bold;
+}
+
+.tt_class_5 {
+	background: #ff929c;
+	font-weight: bold;
+}
+
+.tt_class_6 {
+	background: #ff9fa8;
+	font-weight: bold;
+}
