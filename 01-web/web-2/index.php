@@ -1,3 +1,23 @@
+<?php
+$counter_file = "counter.txt";
+
+$counter_fp = fopen($counter_file, "r");
+$count = fread($counter_fp, filesize($counter_file));
+fclose($counter_fp);
+
+$value = (string) ($count + 1);
+
+if (!$_COOKIE['ip']) {
+    setcookie("ip", $_SERVER["REMOTE_ADDR"]);
+    
+    $count++;
+
+    $counter_fp = fopen($counter_file, "w");
+    fwrite($counter_fp, $value, strlen($value));
+    fclose($counter_fp);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,11 +28,10 @@
 </head>
 <body>
     <?php
-        $count = 0;
-
-        while ($count) {
+        for ($i = 0; $i < strlen($value); $i++) {
+            $c = substr($value, $i, 1);
             ?>
-            <img src="img/<?php echo $count ?>.JPG" alt="">
+            <img src="img/<?php echo $c; ?>.JPG" alt="">
             <?php
         }
     ?>
