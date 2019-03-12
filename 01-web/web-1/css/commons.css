@@ -57,6 +57,11 @@ span.subtitle {
     float: right;
 }
 
+.right {
+	height: 200px;
+	float: right;
+}
+
 p.hr {
 	margin: 16px 0;
 	height: 0;
