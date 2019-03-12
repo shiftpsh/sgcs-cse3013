@@ -1,16 +1,21 @@
 <?php
+// counter.txt holds current counter value
 $counter_file = "counter.txt";
 
+// Read from counter.txt and load to $count
 $counter_fp = fopen($counter_file, "r");
 $count = fread($counter_fp, filesize($counter_file));
 fclose($counter_fp);
 
-$value = (string) ($count + 1);
+// Value to reference later on
+$value = (string) $count;
 
+// If cookie not set, increment counter and update to counter.txt
 if (!$_COOKIE['ip']) {
     setcookie("ip", $_SERVER["REMOTE_ADDR"]);
     
     $count++;
+    $value = (string) ($count + 1);
 
     $counter_fp = fopen($counter_file, "w");
     fwrite($counter_fp, $value, strlen($value));
@@ -28,6 +33,7 @@ if (!$_COOKIE['ip']) {
 </head>
 <body>
     <?php
+        // Render images
         for ($i = 0; $i < strlen($value); $i++) {
             $c = substr($value, $i, 1);
             ?>
