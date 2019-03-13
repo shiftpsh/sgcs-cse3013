@@ -1,0 +1,50 @@
+
+\documentclass[runningheads]{llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline WEB-3 예비 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{DOM}
+\textbf{DOM}(Document Object Model)은 객체 지향 모듈로서, HTML, XHTML, XML 등의 문서를 트리 구조로 표현한다. 트리에서 모든 노드는 문서의 구성 요소를 의미하고, \textbf{DOM 메서드}는 이 트리와 트리 각각의 노드에 접근하고 수정할 수 있게 해 준다.
+
+많은 브라우저 엔진이 웹 페이지를 렌더하기 위해 DOM 구조를 사용한다. 이 경우 DOM 트리의 루트 노드는 \textbf{문서 오브젝트}(Document Object)가 된다. 브라우저는 HTML을 다운로드하고 로컬 메모리에 로드해 둔 후 이를 파싱해 스크린에 렌더한다.
+
+웹 페이지가 로드되면 브라우저는 페이지의 DOM을 생성한다. DOM은 JavaScript와 페이지 사이의 상호작용을 매개할 수 있으며, 다음과 같은 항목들을 가능하게 한다.
+\begin{itemize}
+	\item HTML 요소와 속성을 전부 제어할 수 있다. HTML 요소들을 새로 추가하고, 수정하고, 삭제하는 것이 가능하다.
+	\item 페이지의 CSS 스타일시트를 제어할 수 있다.
+	\item 유저와 페이지 사이에 일어나는 모든 상호작용(클릭, 스크롤, 창 크기 조정 등)에 반응할 수 있다.
+	\item 페이지 내에서 새로운 상호작용 이벤트를 만들 수 있다. 예를 들어 특정 HTML 요소를 클릭하는 상호작용을 시뮬레이션할 수 있다.
+\end{itemize}
+DOM의 이런 이점 덕분에 JavaScript는 동적인 웹 사이트를 만들 때 자주 사용된다.
+  
+\end{document}
