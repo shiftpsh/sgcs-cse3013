@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>++ 자 . 바 . 스 . 크 . 립 . 트 ++</title>
+
+    <style>
+        body {
+            width: 100%;
+        }
+
+        .contents {
+            width: 100%;
+            text-align: center;
+        }
+
+        .carousel {
+            background: #000;
+            width: 300px;
+            padding: 16px;
+            margin: 64px auto;
+        }
+
+        img.display {
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="contents">
+        <div class="carousel">
+            <img class="display" src="/images/0.jpg" name="carousel" alt="carousel">
+            
+            <div class="controller">
+                <input type="button" value="&lt;&lt;" onclick="backward()">
+                <input type="button" value="Home" onclick="home()">
+                <input type="button" value="&gt;&gt;" onclick="forward()">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var totalPictures = 10;
+        var currentIdx = 0;
+
+        function updateImage() {
+            document.carousel.src = '/images/' + currentIdx + '.jpg';
+        }
+
+        function forward() {
+            currentIdx++;
+            currentIdx %= totalPictures;
+            updateImage();
+        }
+
+        function backward() {
+            currentIdx--;
+            if (currentIdx < 0) currentIdx += totalPictures;
+            updateImage();
+        }
+
+        function home() {
+            currentIdx = 0;
+            updateImage();
+        }
+    </script>
+</body>
+</html>
