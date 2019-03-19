@@ -1,70 +1,52 @@
-<!DOCTYPE html>
-<html lang="ko">
+<html> 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>++ 자 . 바 . 스 . 크 . 립 . 트 ++</title>
-
-    <style>
-        body {
-            width: 100%;
-        }
-
-        .contents {
-            width: 100%;
-            text-align: center;
-        }
-
-        .carousel {
-            background: #000;
-            width: 300px;
-            padding: 16px;
-            margin: 64px auto;
-        }
-
-        img.display {
-            min-height: 200px;
-        }
-    </style>
+	<title> ++ 자. 바. 스. 크. 립. 트 ++ </title>
 </head>
 <body>
-    <div class="contents">
-        <div class="carousel">
-            <img class="display" src="/images/0.jpg" name="carousel" alt="carousel">
-            
-            <div class="controller">
-                <input type="button" value="&lt;&lt;" onclick="backward()">
-                <input type="button" value="Home" onclick="home()">
-                <input type="button" value="&gt;&gt;" onclick="forward()">
-            </div>
-        </div>
-    </div>
+<center>
+	<table border="0" cellpadding="3" bgcolor=#000000 width=300>
+		<tr height=300>
+			<td align="center">
+				<!---- 맨처음 보여줄 이미지 설정  ---->
+				<img src="images/0.jpg" name="gallery">
+			</td>
+		</tr>
+		<tr>
+			<td align="center">
+				<form name="menu">
+					<script>
+						var totalPictures = 10;
+        				var which = 1;
+						var currentIdx = 0;
 
-    <script>
-        var totalPictures = 10;
-        var currentIdx = 0;
-
-        function updateImage() {
-            document.carousel.src = '/images/' + currentIdx + '.jpg';
-        }
-
-        function forward() {
-            currentIdx++;
-            currentIdx %= totalPictures;
-            updateImage();
-        }
-
-        function backward() {
-            currentIdx--;
-            if (currentIdx < 0) currentIdx += totalPictures;
-            updateImage();
-        }
-
-        function home() {
-            currentIdx = 0;
-            updateImage();
-        }
-    </script>
-</body>
+        				function updateImage() {
+        				    document.gallery.src = 'images/' + currentIdx + '.jpg';
+        				}
+					
+        				function forward() {
+        				    currentIdx++;
+        				    currentIdx %= totalPictures;
+        				    updateImage();
+        				}
+					
+        				function backward() {
+							if (!which) {
+								currentIdx = 0;
+								which = 1;
+							} else {
+        				    	currentIdx--;
+        				    	if (currentIdx < 0) currentIdx += totalPictures;
+							}
+							updateImage();
+        				}
+					</script>
+					<input type="button" value="<<뒤로" onClick="backward()" /> 
+					<input type="button" value="처음" onClick="which=0;backward()" />
+					<input type="button" value="앞으로>>"  onClick="forward()" />
+				</form>
+			</td>
+		</tr>
+	</table>
+</center>  
+</body> 
 </html>
