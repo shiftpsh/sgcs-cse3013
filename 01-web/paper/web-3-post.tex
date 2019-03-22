@@ -1,0 +1,41 @@
+
+\documentclass[runningheads]{llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline WEB-3 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{소스 코드}
+이 코드는 https://shiftpsh.com/web3/ 에서 실행시켜 볼 수 있다.
+
+\inputminted[xleftmargin=\parindent,breaklines,linenos]{html}{inc-sources/source-web3.html}
+  
+\end{document}
