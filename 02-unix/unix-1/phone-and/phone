@@ -1,0 +1,16 @@
+# If no arguments are given:
+if [ $# -eq 0 ]; then
+    echo "Usage: phone searchfor [...searchfor]"
+    echo "(You didn't tell me what you want to search for.)"
+    exit 0
+fi
+
+# Pipeline all commands
+command="egrep $1 data"
+for arg in "${@:2}"; do
+    command="$command | egrep $arg"
+done
+
+# Print results
+eval "$command | awk -f display.awk"
+exit 0

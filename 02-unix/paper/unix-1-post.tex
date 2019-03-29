@@ -1,0 +1,63 @@
+
+\documentclass[runningheads]{llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline UNIX-1 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{소스 코드}
+\textbf{phone}
+\inputminted[xleftmargin=\parindent,breaklines,linenos]{shell}{inc-sources/phone}
+
+\textbf{display.awk}
+\inputminted[xleftmargin=\parindent,breaklines,linenos]{awk}{inc-sources/display.awk}
+  
+\section{and, or 동시 지원}
+1번째 argument에 and 혹은 or를 명시하는 옵션을 달아 다음과 같은 명령어 구조를 사용할 수 있을 것이다.
+
+\begin{minted}[xleftmargin=\parindent,breaklines,linenos]{shell}
+./phone [-and|-or] [queries...]
+\end{minted}
+
+
+그러면 스크립트에서 1번째 인자에 따라 and-mode와 or-mode 중 하나를 선택해 실행할 수 있을 것이다. \texttt{if}-\texttt{elif}-\texttt{else}-\texttt{fi} 컨트롤 플로우를 사용하면 된다. 따라서 다음과 같은 코드 구조를 생각할 수 있다.
+
+\begin{minted}[xleftmargin=\parindent,breaklines,linenos]{shell}
+if [ $1='-and']; then
+    # and-mode
+elif [ $1='-or' ]; then
+    # or-mode
+else
+    # error handling
+fi
+\end{minted}
+
+\end{document}
