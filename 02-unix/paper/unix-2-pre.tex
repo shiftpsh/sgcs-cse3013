@@ -72,7 +72,7 @@ int main() {
 
 컴파일 과정은 전단부\translation{front-end}, 중단부\translation{middle-end}, 후단부\translation{back-end}로 구성된다. 이 전 과정이 실행되는 시간을 \textbf{컴파일 타임}\translation{compile time}이라고 한다.
 
-전단부에서는 \textbf{렉서}\translation{lexer}(구문 해석기)가 소스코드를 토큰\translation{token}으로 나누고, 이 토큰들로 \textbf{파서}\translation{parser}(어휘 해석기)가 파스 트리\translation{parse tree}를 구성하여 문법적, 기능적 오류를 검출한다. 마지막으로 언어에 비종속적인 GIMPLE 트리를 만들어 중단부에 제공한다.
+전단부에서는 \textbf{렉서}\translation{lexer}(어휘 해석기)가 소스코드를 토큰\translation{token}으로 나누면서 문법적 오류를 검출하고, 이 토큰들로 \textbf{파서}\translation{parser}(구문 해석기)가 파스 트리\translation{parse tree}를 구성하여 기능적 오류를 검출한다. 마지막으로 언어에 비종속적인 GIMPLE 트리를 만들어 중단부에 제공한다.
 
 중단부에서는 GIMPLE 트리를 SSA\translation{Static Single Assignment} 형식의 자료로 변환한 후, 환경에 종속적이지 않은 최적화를 진행한다. 여기서 환경이랑 OS 혹은 CPU 아키텍쳐를 말한다. 최적화가 완료되면 후단부에 RTL\translation{Register Transfer Language} 형식으로 제공한다.
 
