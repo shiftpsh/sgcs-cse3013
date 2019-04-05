@@ -76,8 +76,8 @@ std::ostream& operator<<(std::ostream& os, const Array &input) {
 	\item \mintinline{c++}{~RangeArray()} (public): 배열을 메모리에서 제거한다.
 	\item \mintinline{c++}{int baseValue()} (public): 배열의 시작 인덱스를 반환한다.
 	\item \mintinline{c++}{int endValue()} (public): 배열의 끝 인덱스를 반환한다.
-	\item \mintinline{c++}{int& operator[](int i)} (public): $\texttt{low} \leq \texttt{i} < \texttt{high}$일 경우, 배열의 \texttt{i}번째 위치에 값을 할당한다.
-	\item \mintinline{c++}{int operator[](int i) const} (public): $\texttt{low} \leq \texttt{i} < \texttt{high}$일 경우, 배열의 \texttt{i}번째 위치의 값을 반환한다.
+	\item \mintinline{c++}{int& operator[](int i)} (public): $\texttt{low} \leq \texttt{i} \leq \texttt{high}$일 경우, 배열의 \texttt{i}번째 위치에 값을 할당한다.
+	\item \mintinline{c++}{int operator[](int i) const} (public): $\texttt{low} \leq \texttt{i} \leq \texttt{high}$일 경우, 배열의 \texttt{i}번째 위치의 값을 반환한다.
 \end{itemize}
 
 이 때 \mintinline{c++}{class RangeArray}는 \mintinline{c++}{class Array}를 상속받는다.
@@ -116,8 +116,8 @@ std::ostream& operator<<(std::ostream& os, const Array &input) {
 \subsection{OOP를 사용하는 이유}
 \begin{itemize}
 	\item 개발과 보수가 편리해지며, 추상화를 통해 직관적인 코드 분석이 가능해진다.
-	\item 프로그램 구조가 유연해지고 수정이 용이해지기 때문에 대규모 프로젝트에 적합하다.
-	\item 라이브러리를 만들어 다른 소스코드에서 활용하기에 편리하다.
+	\item 코드의 구조가 유연해지고 수정이 용이해지기 때문에 대규모 프로젝트에 적합하다.
+	\item 라이브러리를 만들어 여러 다른 프로젝트에서 활용하기에 좋다.
 \end{itemize}
 
 \end{document}
