@@ -1,0 +1,242 @@
+\documentclass[runningheads]{../../../llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\newcommand{\translation}[1]{\textsuperscript{#1}}
+
+\newlist{algorithm}{enumerate}{10}
+\setlist[algorithm]{label*=\arabic*.}
+\setlist[algorithm,1]{label=\textbf{\arabic*}}
+\setlist[algorithm,2]{label=\textbf{\alph*}}
+\setlist[algorithm,3]{label=\textbf{\roman*}}
+\setlist[algorithm,4]{label=(\arabic*)}
+\setlist[algorithm,5]{label=(\alph*)}
+\setlist[algorithm,6]{label=(\roman*)}
+
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline UNIX-2 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실습 과정에 개발한 fmt에 대하여 결과 보고한다.
+
+\section{문제 풀이 결과}
+
+\subsection{알고리즘}
+
+\textbf{\texttt{int main(int argc, char *argv[])}}: 메인 메서드.
+\begin{algorithm}
+	\item \texttt{FILE *fp}, \texttt{char *line1}, \texttt{char *line2}, \texttt{char *tmpline} 정의.
+	\item \texttt{int Count}, \texttt{int Blanks}, \texttt{int B_Flag}, \texttt{int B_Line} 변수 0으로 초기화.	
+	\item 파일 이름이 주어지지 않았을 경우: \texttt{Usage: fmt filename | > outfile} 출력 후 프로그램 종료.
+	\item 파일 읽기 시도. 파일 읽기에 실패할 경우: \texttt{File open error.} 출력 후 프로그램 종료.
+	\item \texttt{line1}, \texttt{line2}의 메모리 할당에 실패할 경우: \texttt{Memory allocation error} 출력 후 프로그램 종료.
+	\item 입력: \texttt{line1}
+	\item \texttt{line1}의 길이 = 0일 경우: 프로그램 정상 종료.
+	\item \texttt{Remove_Blanks_At_The_End(line1)}.
+	\item \texttt{line1}의 첫 글자가 \texttt{\textbackslash{}n}일 경우: \texttt{\textbackslash{}n} 출력.
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{B_Line}이 0일 경우: \texttt{Print_Line(line1, \&Count, \&B_Flag)}, 아닐 경우: $\texttt{B_Line} \leftarrow 0$.
+				\item \texttt{Count}가 0이 아닐 경우: $\texttt{B_Flag} \leftarrow 1$.
+				\item 입력: \texttt{line2}. 읽지 못했을 경우: 루프 탈출.
+				\item \texttt{Remove_Blanks_At_The_End(line2)}.
+				\item \texttt{line2[0]}이 공백 문자이거나 \texttt{Count}가 0이 아닐 경우:
+					\begin{algorithm}
+						\item \texttt{\textbackslash{}n} 출력.
+						\item $\texttt{B_Flag} \leftarrow 0$, $\texttt{Count} \leftarrow 0$.
+					\end{algorithm}
+				\item 그렇지 않으면서 \texttt{line2[0]}이 개행 문자일 경우:
+					\begin{algorithm}
+						\item \texttt{B_Flag}이 1일 경우: \texttt{\textbackslash{}n} 출력, $\texttt{B_Flag} \leftarrow 0$
+						\item \texttt{\textbackslash{}n} 출력.
+						\item $\texttt{B_Line} \leftarrow 1$, $\texttt{Count} \leftarrow 0$.
+					\end{algorithm}
+				\item \texttt{line1}과 \texttt{line2}의 내용 서로 바꾸기.
+			\end{algorithm}
+	\item \texttt{line1}의 첫 글자가 개행 문자가 아닐 경우:
+			\begin{algorithm}
+				\item \texttt{i} 변수 0으로 초기화.
+				\item 루프:
+					\begin{algorithm}
+						\item \texttt{line1[i]}가 개행 문자 혹은 NUL 문자일 경우: 루프 탈출.
+						\item $\texttt{i} \leftarrow \texttt{i} + 1$.
+					\end{algorithm}
+				\item \texttt{line1[i]}가 개행 문자일 경우: \texttt{\textbackslash{}n} 출력.
+			\end{algorithm}
+	\item 프로그램 정상 종료.
+\end{algorithm}
+
+\textbf{\texttt{void Remove_Blanks_At_The_End(char *line)}}: 문자열 뒤의 연속된 공백을 제거하는 메서드.
+\begin{algorithm}
+	\item \texttt{int i} 정의 및 \texttt{int k}, \texttt{int newline_flag} 변수 0으로 초기화.	
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{line[k]}이 개행 문자일 경우: $\texttt{newline_flag} \leftarrow 1$, 루프 탈출.
+				\item \texttt{line[k]}이 NUL 문자일 경우: 루프 탈출.
+				\item $\texttt{k} \leftarrow \texttt{k} + 1$.
+			\end{algorithm} 
+	\item \texttt{i} $\leftarrow$ $\texttt{k} - 1$.
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{line[i]}가 공백 문자가 아닐 경우: 루프 탈출.
+				\item $\texttt{i} \leftarrow \texttt{i} - 1$.
+				\item \texttt{i}가 0보다 작을 경우: 루프 탈출.
+			\end{algorithm}
+	\item \texttt{newline_flag}이 1일 경우:
+			\begin{algorithm}
+				\item $\texttt{line[i + 1]} \leftarrow \textrm{LF (\texttt{\textbackslash{}n})}$.
+				\item $\texttt{line[i + 2]} \leftarrow \textrm{NUL (\texttt{\textbackslash{}0})}$.
+			\end{algorithm}
+	\item \texttt{newline_flag}이 1이 아닐 경우:
+			\begin{algorithm}
+				\item $\texttt{line[i + 1]} \leftarrow \textrm{NUL (\texttt{\textbackslash{}0})}$.
+			\end{algorithm}
+	\item 프로시저 종료
+\end{algorithm}
+
+\textbf{\texttt{void Get_Blanks_Chars(char *line, int Start, int *N_Blanks, int *N_Chars)}}: 문자열의 공백과 문자를 세는 메서드.
+\begin{algorithm}
+	\item \texttt{int i} 정의 및 \texttt{int blank_flag} 변수 0으로 초기화.
+	\item $\texttt{*N_Blanks} \leftarrow 0$, $\texttt{*N_Chars} \leftarrow 0$, $\texttt{i} \leftarrow \texttt{Start}$.
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{line[i]}이 개행 문자 혹은 NUL 문자일 경우: 루프 탈출.
+				\item \texttt{line[i]}이 공백 문자일 경우:
+					\begin{algorithm}
+						\item \texttt{blank_flag}가 0일 경우: $\texttt{*N_Blanks} \leftarrow \texttt{*N_Blanks} + 1$.
+						\item \texttt{blank_flag}가 0이 아닐 경우: 루프 탈출.
+ 					\end{algorithm}
+				\item \texttt{line[i]}이 개행 문자, NUL 문자, 공백 문자 중 하나가 아닐 경우:
+					\begin{algorithm}
+						\item $\texttt{blank_flag} \leftarrow 1$
+						\item $\texttt{*N_Chars} \leftarrow \texttt{*N_Chars} + 1$
+ 					\end{algorithm}
+			\end{algorithm} 
+	\item 프로시저 종료
+\end{algorithm}
+
+\textbf{\texttt{void Print_Line(char *line, int *Count, int *B_Flag)}}: 문자열의 공백 수와 문자 수를 세는 메서드.
+\begin{algorithm}
+	\item \texttt{int i} 정의 및 \texttt{int k}, \texttt{int newline_flag} 변수 0으로 초기화.	
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{line[k]}이 개행 문자일 경우: $\texttt{newline_flag} \leftarrow 1$, 루프 탈출.
+				\item \texttt{line[k]}이 NUL 문자일 경우: 루프 탈출.
+				\item $\texttt{k} \leftarrow \texttt{k} + 1$.
+			\end{algorithm} 
+	\item \texttt{i} $\leftarrow$ $\texttt{k} - 1$.
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{line[i]}가 공백 문자가 아닐 경우: 루프 탈출.
+				\item $\texttt{i} \leftarrow \texttt{i} - 1$.
+				\item \texttt{i}가 0보다 작을 경우: 루프 탈출.
+			\end{algorithm}
+	\item \texttt{newline_flag}이 1일 경우:
+			\begin{algorithm}
+				\item $\texttt{line[i + 1]} \leftarrow \textrm{LF (\texttt{\textbackslash{}n})}$.
+				\item $\texttt{line[i + 2]} \leftarrow \textrm{NUL (\texttt{\textbackslash{}0})}$.
+			\end{algorithm}
+	\item \texttt{newline_flag}이 1이 아닐 경우:
+			\begin{algorithm}
+				\item $\texttt{line[i + 1]} \leftarrow \textrm{NUL (\texttt{\textbackslash{}0})}$.
+			\end{algorithm}
+	\item 프로시저 종료
+\end{algorithm}
+
+\textbf{\texttt{void Get_Blanks_Chars(char *line, int Start, int *N_Blanks, int *N_Chars)}}: 문자열을 설정된 길이에 맞게 포맷하여 출력하는 메서드.
+\begin{algorithm}
+	\item \texttt{int i}, \texttt{int N_Blanks}, \texttt{int N_Chars} 정의 및 \texttt{int Start} 변수 0으로 초기화.
+	\item \texttt{Get_Blanks_Chars(line, Start, \&N_Blanks, \&N_Chars)}.
+	\item 루프:
+			\begin{algorithm}
+				\item \texttt{*B_Flag}가 1이면서 $\texttt{*Count} + \texttt{N_Chars} + 1 \leq \texttt{LIMIT}$인 경우:
+					\begin{algorithm}
+						\item \texttt{N_Blanks}가 0이 아닌 경우: \texttt{Something Wrong!} 출력 후 프로그램 에러 코드 -1로 종료.
+						\item 공백 문자 1개 출력.
+						\item $\texttt{*B_Flag} \leftarrow 0$.
+						\item $\texttt{i} \leftarrow \texttt{Start}$.
+						\item 루프:
+							\begin{algorithm}
+								\item \texttt{line[i]} 출력.
+								\item $\texttt{i} \leftarrow \texttt{i} + 1$.
+								\item $\texttt{i} \geq \texttt{Start} + \texttt{N_Chars}$일 경우: 루프 탈출.
+							\end{algorithm}
+						\item $\texttt{Start} \leftarrow \texttt{Start} + \texttt{N_Chars}$, $\texttt{*Count} \leftarrow \texttt{*Count} + \texttt{N_Chars} + 1$.
+						\item \texttt{Get_Blanks_Chars(line, Start, \&N_Blanks, \&N_Chars)}.
+ 					\end{algorithm}
+ 				\item a가 아니면서, $\texttt{*Count} + \texttt{N_Blanks} + \texttt{N_Chars} \leq \texttt{LIMIT}$인 경우:
+ 					\begin{algorithm}
+						\item $\texttt{i} \leftarrow \texttt{Start}$.
+						\item 루프:
+							\begin{algorithm}
+								\item \texttt{line[i]} 출력.
+								\item $\texttt{i} \leftarrow \texttt{i} + 1$.
+								\item $\texttt{i} \geq \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$일 경우: 루프 탈출.
+							\end{algorithm}
+						\item $\texttt{Start} \leftarrow \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$, $\texttt{*Count} \leftarrow \texttt{*Count} + \texttt{N_Blanks} + \texttt{N_Chars} + 1$.
+						\item \texttt{Get_Blanks_Chars(line, Start, \&N_Blanks, \&N_Chars)}.
+ 					\end{algorithm}
+ 				\item a, b가 아닌 경우:
+ 					\begin{algorithm}
+						\item \texttt{*Count}가 0인 경우:
+							\begin{algorithm}
+								\item $\texttt{i} \leftarrow \texttt{Start}$.
+								\item 루프:
+									\begin{algorithm}
+										\item \texttt{line[i]} 출력.
+										\item $\texttt{i} \leftarrow \texttt{i} + 1$.
+										\item $\texttt{i} \geq \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$일 경우: 루프 탈출.
+									\end{algorithm}
+								\item $\texttt{Start} \leftarrow \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$.
+								\item \texttt{Get_Blanks_Chars(line, Start, \&N_Blanks, \&N_Chars)}.
+								\item $\texttt{Start} \leftarrow \texttt{Start} + \texttt{N_Blanks}$.
+							\end{algorithm}
+						\item \texttt{*Count}가 0이 아닌 경우:
+							\item \texttt{*Count}가 0인 경우:
+							\begin{algorithm}
+								\item 개행 문자 출력.
+								\item $\texttt{*B_Flag} \leftarrow 0$.
+ 								\item \item $\texttt{i} \leftarrow \texttt{Start} + \texttt{N_Blanks}$.
+								\item 루프:
+									\begin{algorithm}
+										\item \texttt{line[i]} 출력.
+										\item $\texttt{i} \leftarrow \texttt{i} + 1$.
+										\item $\texttt{i} \geq \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$일 경우: 루프 탈출.
+									\end{algorithm}
+								\item $\texttt{Start} \leftarrow \texttt{Start} + \texttt{N_Blanks} + \texttt{N_Chars}$.
+								\item $\texttt{*Count} \leftarrow \texttt{N_Chars}$.
+								\item \texttt{Get_Blanks_Chars(line, Start, \&N_Blanks, \&N_Chars)}.
+							\end{algorithm}
+ 					\end{algorithm}
+			\end{algorithm} 
+	\item 프로시저 종료
+\end{algorithm}
+
+\end{document}
