@@ -1,0 +1,37 @@
+\documentclass[runningheads]{../../../llncs}
+\usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
+\usepackage{graphicx}
+\usepackage{kotex}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{indentfirst}
+\usepackage{tabularx}
+\usepackage{underscore}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{menukeys}
+\usepackage[square,sort,comma,super]{natbib}
+\usepackage{inconsolata} % Inconsolata
+\usepackage{mathptmx} % Times New Roman
+\usepackage[cache=false]{minted}
+\graphicspath{ {./images/} }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\renewcommand{\bibname}{참고문헌}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\linespread{1.2}
+{\renewcommand{\arraystretch}{1.5}%
+\setlength{\tabcolsep}{0.5em}%
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\newcommand{\translation}[1]{\textsuperscript{#1}}
+\newlist{algorithm}{enumerate}{10}
+\setlist[algorithm]{label*=\arabic*.}
+\setlist[algorithm,1]{label=\textbf{\arabic*}}
+\setlist[algorithm,2]{label=\textbf{\alph*}}
+\setlist[algorithm,3]{label=\textbf{\roman*}}
+\setlist[algorithm,4]{label=(\arabic*)}
+\setlist[algorithm,5]{label=(\alph*)}
+\setlist[algorithm,6]{label=(\roman*)}
