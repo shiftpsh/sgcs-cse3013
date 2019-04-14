@@ -1,0 +1,56 @@
+\input{../../../header}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline CPP-2 예비 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실험에서 제시한 문제를 이해하고, 이를 해결하기 위한 알고리즘 및 자료 구조를 구상한다.
+
+\section{문제}
+
+\subsection{문제 이해}
+\texttt{Print}가 미구현된 \texttt{LinkedList} 클래스를 완성하고, 템플릿 자료형을 사용할 수 있도록 확장한다. 이를 상속받는 \texttt{Stack} 클래스를 작성한다.
+
+\subsection{구현 방법 구상}
+
+\begin{itemize}
+	\item \textbf{\texttt{Print()}}: 링크드 리스트의 원소를 순회하면서 노드의 값을 차례로 출력하면 된다.
+	\item \textbf{템플릿 클래스로 확장}: 선언부에 \mintinline{c++}{template <typename T>} 혹은 \mintinline{c++}{template <class T>}를 노드와 링크드 리스트 모두에 추가한다. 그리고 기존에 데이터를 담고 있던 자료의 자료형 \mintinline{c++}{int}를 전부 템플릿 변수 \mintinline{c++}{T}로 바꿔 준다.
+	\item \textbf{\mintinline{c++}{class Stack}}: \mintinline{c++}{class LinkedList}를 상속받는다. \mintinline{c++}{virtual bool Delete(T& element)}로 \mintinline{c++}{Delete()}를 재정의한다.
+	
+	링크드 리스트의 맨 앞 원소 삭제에 성공 시 \mintinline{c++}{true}, 실패 시 \mintinline{c++}{false}를 반환하며, 삭제에 성공했을 경우 삭제된 원소를 \mintinline{c++}{element}에 저장한다. 또한 \mintinline{c++}{first}는 \mintinline{c++}{first->link}가 되며 \mintinline{c++}{current_size}는 1 감소하게 된다.
+\end{itemize}
+
+\newpage
+
+\section{예비 학습}
+
+\subsection{다형성}
+\textbf{다형성\translation{polymorphism}}은 프로그래밍 언어들 또는 유형론에서, 각 요소들(상수, 변수, 식, 오브젝트, 함수, 메소드 등)이 다양한 자료형에 속하는 것이 허가되는 성질을 말한다. 반의어로는 \textbf{단형성\translation{monomorphism}}이 있다. 다형성에는 \textbf{임시 다형성\translation{ad hoc polymorphism}}, \textbf{변수 다형성\translation{parametric polymorphism}}, \textbf{서브타입 다형성\translation{subtype polymorphism}} 등이 존재한다.
+
+\textbf{임시 다형성}은 같은 이름을 가진 함수가 특정 자료형에 따라 다른 기능을 가질 수 있게 하는 성질이다. 예를 들어, C++에서 \mintinline{c++}{int}에서의 `+' 연산자와 \mintinline{c++}{std::string}에서의 `+' 연산자의 정의는 다르다. 맥락에 따라 전자는 두 \mintinline{c++}{int}의 값을 더하는 역할을 하지만 후자는 두 \mintinline{c++}{std::string}을 이어붙이는 역할을 한다. 또한 임시 다향성은 \textbf{오버로딩\translation{overloading}}의 기반이다.
+
+\textbf{변수 다형성}은 자료형이나 함수를 일반적으로 정의할 수 있게 하는 성질이다. C++의 \textbf{템플릿\translation{template}}, Java의 \textbf{제네릭\translation{generic}}을 뒷받침하는 성질이다. C++에서 \mintinline{c++}{std::pair<class T1, class T2>}는 \texttt{T1}과 \texttt{T2} 자료형에 상관없이 \texttt{first}, \texttt{second} 등의 이름으로 멤버 변수에 액세스할 수 있다. 또한
+\begin{minted}{c++}
+template <class T>
+T max(T a, T b) {
+    return a > b ? a : b;
+}
+\end{minted}
+	와 같은 함수는 \texttt{T}에 상관없이 \texttt{a}와 \texttt{b} 중 큰 값을 반환한다. 변수 다향성은 컴파일 타임에 일어나기 때문에, \textbf{컴파일 타임 다형성\translation{compile-time polymorphism}}이라고도 불린다.
+	
+\textbf{서브타입 다형성} 또는 유형론에서 \textbf{포함 다형성\translation{inclusion polymorphism}}은 변수 다향성과 비슷하지만, 변수 다향성이 자료형에 구애받지 않고 적용 가능한 성질이었다면 서브타입 다향성은 어떤 자료형을 상속받는 자료형에만 적용되는 개념이다. 어떤 다형성 함수를 호출할지는 런타임에서 결정되기 때문에 변수 다향성과는 반대로 \textbf{런타임 다형성\translation{runtime polymorphism}}이라고 불린다.
+
+\subsection{캡슐화}
+\textbf{캡슐화\translation{encapsulation}}는 OOP에서 객체의 속성과 메서드를 하나로 묶고, 구현 내용 일부를 외부에서 액세스할 수 없게 하는 것이다.
+
+캡슐화를 통해 객체의 내부 구현은 숨기면서 꼭 필요한 필드와 메서드들만 다른 코드에서 참조하게 만들어 코드의 복잡도를 줄일 수 있다. 또한 객체의 내부를 숨김으로써 다른 코드가 객체의 내부 데이터를 일관성 없는 상태로 수정하는 것을 방지할 수 있고, 이는 객체의 무결성을 보호한다. 여러 객체 지향 프로그래밍 언어들은 캡슐화를 위한 \textbf{접근 지정자\translation{access specifiers}}들을 제공한다.
+
+\subsection{재정의}
+\textbf{재정의\translation{override}}는 위에서 언급한 \textbf{서브타입 다형성\translation{subtype polymorphism}}에 해당된다. 상위 클래스에서 상속받은 메서드를 하위 클래스에서 다른 동작으로 재정의하는 것을 말한다.
+
+\end{document}
