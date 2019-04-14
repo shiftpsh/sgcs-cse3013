@@ -37,6 +37,14 @@ int Str::compare(Str &a) {
 }
 
 void Str::operator=(char *a) {
+    if (a == 0) { // nullptr = 0
+        len = 0;
+        delete []str;
+		str = new char[1];
+        str[0] = '\0';
+        return;
+    }
+
     int a_len = strlen(a);
 
     if (len < a_len) {
