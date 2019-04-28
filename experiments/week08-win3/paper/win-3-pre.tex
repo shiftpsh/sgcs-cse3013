@@ -65,6 +65,50 @@ DC는 임의의 출력 하드웨어를 소프트웨어 인터페이스로 재구
 
 \subsection{물 흐르는 경로 계산 알고리즘}
 
-% TODO
+\subsubsection{자료구조}
+
+시작점, 선분, 물 흐르는 경로를 저장해야 한다.
+
+\begin{itemize}
+	\item 점들은 2차원 평면상에 존재하므로, 실수의 2-tuple을 이용해 만들 수 있겠다. \mintinline{c++}{std::pair}를 상속하는 클래스를
+	만들거나, 단순히 \texttt{x}, \texttt{y} 두 개의 필드가 있는 \mintinline{c++}{struct}로 구현할 수 있을 것이다.
+	\item 선분은 시작 점과 끝 점으로 나타낼 수 있다. 따라서 위에서 만든 점 자료구조의 2-tuple으로 나타낼 수 있다.
+	점 자료구조의 구현 방법과 유사하게 구현할 수 있을 것이다.
+	\item 점들의 집합과 선분의 집합을 나타내는 자료구조로는 가변 배열인 \mintinline{c++}{std::vector}를 사용하는 것이 좋겠다.
+	물이 흐르는 경로도 점들의 순차 집합으로 생각할 수 있는데, 이도 \mintinline{c++}{std::vector}로 나타낼 수 있다.
+\end{itemize}
+
+\subsubsection{알고리즘} 선분이 $n$개, 물구멍이 $m$개 있다고 하자. 또한 선분들의 집합 $S_s$, 물구멍들의 집합 $S_w$가 있다고 하자.
+
+\begin{algorithm}
+	\item $S_s$에 선분 $y = 0$ 추가
+	\item 가변 크기 배열들을 원소로 갖는 크기가 $n$인 배열 $list$ 선언
+	\item $0 \leq i < n$인 모든 정수 $i$에 대해 반복:
+	\begin{algorithm}
+		\item 점 $P\left(P_x, P_y\right) = \left(S_w\right)_i$ 선언
+		\item $list_i$에 $P$ 추가
+		\item $P_y > 0$일 경우 반복:
+		\begin{algorithm}
+			\item 선분 $h : x = P_x$,
+			점 $M\left(M_x, M_y=0\right)$,
+			선분 $l : L_1 \rightarrow L_2$ 선언
+			\item $k \in S_s$에 대해 반복:
+			\begin{algorithm}
+				\item $h$과 $k$의 교점 $Q\left(Q_x, Q_y\right)$ 계산
+				\item $Q_y < M_y$일 경우, 다음 반복 단계로 진행
+				\item $Q_y > P_y$일 경우, 다음 반복 단계로 진행
+				\item $M \leftarrow Q$, $l \leftarrow k$
+			\end{algorithm}
+			\item $list_i$에 $M$ 추가
+			\item $l = \left(y = 0\right)$일 경우, 반복 종료
+			\item $list_i$에 $L_1$, $L_2$ 중 $y$ 좌표가 작은 점 $L_m$ 추가
+			\item $P \leftarrow L_m$
+		\end{algorithm} 
+	\end{algorithm}
+	\item $list$ 반환
+\end{algorithm}
+
+$m$개의 물구멍에 대해 최악의 경우 $n$개의 선분에 대해 다른 모든 선분들과의 교점을 찾는 작업을 진행하므로,
+시간 복잡도는 $\mathcal{O}\left(mn^2\right)$이다.
 
 \end{document}
