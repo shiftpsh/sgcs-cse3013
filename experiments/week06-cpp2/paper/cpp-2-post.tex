@@ -1,0 +1,67 @@
+\input{../../../header}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline CPP-2 예비 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실험과 과제에서 제시한 문제를 이해하고, 이를 해결하기 위해 사용한 알고리즘 및 자료 구조를 기술한다.
+
+\section{문제}
+
+\subsection{실험}
+
+\mintinline{c++}{template <class T> class Node}
+\begin{itemize}
+	\item \mintinline{c++}{T data} (public): 노드의 값을 저장하는 변수이다.
+	\item \mintinline{c++}{Node *link} (public): 다음 노드의 참조를 저장하는 변수이다.
+\end{itemize}
+
+\mintinline{c++}{template <class T> class LinkedList}
+\begin{itemize}
+	\item \mintinline{c++}{Node<T> *first} (protected): 링크드 리스트의 첫 노드의 참조를 저장하는 변수이다.
+	\item \mintinline{c++}{int current_size} (protected): 링크드 리스트의 크기를 저장하는 변수이다.
+	\item \mintinline{c++}{LinkedList()} (public): 링크드 리스트의 생성자이다.
+	\item \mintinline{c++}{int GetSize()} (public): 링크드 리스트의 크기(=\texttt{current_size})를 반환하는 함수이다.
+	\item \mintinline{c++}{void Insert(T element)} (public): 링크드 리스트의 \textbf{맨 앞}에 원소를 삽입하는 함수이다.
+	노드를 하나 만들고 새로 만든 노드 다음 노드의 참조를 \mintinline{c++}{*first}로 설정한 뒤, 링크드 리스트의 첫 번째 노드를 새로 만든 노드로 설정한다.
+	\item \mintinline{c++}{virtual bool Delete(T &element)} (public): 링크드 리스트의 \textbf{마지막} 원소를 제거한다.
+	링크드 리스트의 노드를 끝까지 탐색한 후 마지막 노드를 제거하고, \texttt{current_size}를 1 줄인다. 모든 노드를 탐색하는 데 걸리는 시간은
+	노드가 $n$개일 때 $\mathcal{O}\left(n\right)$이다.
+	\item \mintinline{c++}{void Print()} (public): 링크드 리스트의 모든 원소를 차례로 출력한다. 모든 노드를 탐색하면서 출력하므로
+	노드가 $n$개일 때 시간 복잡도는 $\mathcal{O}\left(n\right)$이다.
+\end{itemize}
+
+\subsection{과제}
+
+\mintinline{c++}{template <class T> class Array}
+\begin{itemize}
+	\item \mintinline{c++}{T *data} (protected): 배열의 값들을 저장하는 변수이다.
+	\item \mintinline{c++}{int len} (protected): 배열의 길이를 저장하는 변수이다.
+	\item \mintinline{c++}{Array(){}} (public): 배열 생성자이다.
+	\item \mintinline{c++}{Array(int size)} (public): 크기가 \texttt{size}인 배열을 생성한다.
+	\item \mintinline{c++}{~Array()} (public): 배열을 메모리에서 해제한다.
+	\item \mintinline{c++}{int length() const} (public): 배열의 크기(=\texttt{len})를 반환하는 함수이다.
+	\item \mintinline{c++}{virtual T &operator[](int i)} (public): 배열의 \texttt{i}번째 원소의 참조를 반환한다.
+	\texttt{i}가 인덱스 범위에서 벗어날 경우에는 오류 메시지를 출력한다.
+	메모리 주소를 액세스하므로 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{virtual T operator[](int i) const} (public): 배열의 \texttt{i}번째 원소의 값을 반환한다.
+	\texttt{i}가 인덱스 범위에서 벗어날 경우에는 오류 메시지를 출력한다.
+	메모리 주소를 액세스하므로 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{void print()} (public): 배열 내의 모든 원소를 출력한다.
+	원소가 $n$개일 때 시간 복잡도는 $\mathcal{O}\left(n\right)$이다.
+\end{itemize}
+
+\mintinline{c++}{template <class T> class GrowableArray : public Array<T>}
+\begin{itemize}
+	\item \mintinline{c++}{GrowableArray(int size)} (public): 크기 가변 배열의 생성자이다. 크기가 \texttt{size}인 배열을 생성한다.
+	\item \mintinline{c++}{virtual T &operator[](int i)} (public): 배열의 \texttt{i}번째 원소의 참조를 반환한다.
+	\texttt{i}가 0보다 작을 경우에는 오류 메시지를 출력하고, 
+	\texttt{i}가 인덱스 범위에서 벗어날 경우에는 배열의 크기를 $2\texttt{i}$로 설정한다.
+	\texttt{i}가 인덱스 범위 안에 있을 경우 시간 복잡도는 $\mathcal{O}\left(1\right)$이고, 밖에 있을 경우 시간 복잡도는 $\mathcal{O}\left(i\right)$이다.
+\end{itemize}
+
+\end{document}
