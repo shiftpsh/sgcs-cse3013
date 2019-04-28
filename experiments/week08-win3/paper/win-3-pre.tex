@@ -1,0 +1,70 @@
+\input{../../../header}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline WIN-3 예비 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+\begin{itemize}
+	\item SDI에 관하여 교재에서 설명한 MFC의 AFX 클래스를 이해한다.
+	\item CDC 객체를 사용하여 그리기를 수행하는 방법을 이해한다.
+	\item 물 흐르는 경로를 찾는 알고리즘 및 자료구조를 고안한다.
+\end{itemize}
+
+\section{문제}
+
+\subsection{AFX 클래스}
+\begin{itemize}
+	\item \mintinline{c++}{class CAboutDlg : public CDialogEx}: 기본적으로 작성되는 프로그램 정보 다이얼로그이다. \texttt{Waterfall.cpp}에 저장된다.
+	\item \mintinline{c++}{class CMainFrame : public CFrameWndEx}: 메인 프레임 윈도이다. \texttt{MainFrm.h}, \texttt{MainFrm.cpp}에 저장된다.
+	\item \mintinline{c++}{class CWaterfallApp : public CWinAppEx}: \texttt{CWinApp}을 상속해 선언하고 구현된다. \texttt{Waterfall.h}, \texttt{Waterfall.cpp}에 저장된다.
+	\item \mintinline{c++}{class CWaterfallView : public CView}: \texttt{CView}를 상속해 뷰 윈도를 선언하고 구현한다. \texttt{WaterfallView.h}, \texttt{WaterfallView.cpp}에 저장된다.
+	\item \mintinline{c++}{class CWaterfallDoc : public CDocument}: \texttt{CDocument}를 상속해 도큐먼트를 구현한다. \texttt{WaterfallDoc.h}, \texttt{WaterfallDoc.cpp}에 저장된다.
+\end{itemize}
+
+\subsection{CDC 객체}
+CDC\translation{Class of Device Context} 객체는 DC\translation{Device Context}에 그리는 객체이다.
+DC는 임의의 출력 하드웨어를 소프트웨어 인터페이스로 재구성한 것이며, 여기서는 HTML의 \mintinline{html}{<canvas>} 태그와
+비슷하게 간단히 그려짐이 일어나는 곳이라고 이해할 수 있겠다.
+
+다음과 같은 과정을 통해 CDC로 DC에 그릴 수 있다.
+\begin{itemize}
+	\item 그릴 도구(\texttt{CGdiObject})를 선택한다.
+	\item 도구의 속성을 지정한다.
+	\item \texttt{SelectObject}로 \texttt{CGdiObject}를 CDC에 등록한다.
+	\item CDC의 함수를 이용해 DC에 그리기를 수행한다.
+	\item CGdiObject가 더 이상 필요하지 않을 경우 메모리에서 제거한다.
+\end{itemize}
+
+\texttt{CGdiObject}에는 다음과 같은 항목들이 있다.
+
+\begin{tabularx}{\textwidth}{l|X}
+	이름 & 기능 \\
+	\hline
+	\texttt{CPen} & 임의의 선분 그리기 \\
+	\texttt{CBrush} & 면의 내부 채우기 \\
+	\texttt{CFont} & 글리프 그리기 \\
+	\texttt{CBitmap} & 비트맵 그리기 \\
+	\texttt{CRgn} & 임의의 도형 그리기 \\
+\end{tabularx}
+
+또한 CDC에는 다음과 같은 멤버 함수들이 있다.
+
+\begin{tabularx}{\textwidth}{l|X}
+	함수 & 기능 \\
+	\hline
+	\texttt{MoveTo(int x, int y)} & 도구 이동 \\
+	\texttt{LineTo(int x, int y)} & 도구의 현재 위치에서 \texttt{(x, y)}까지 선분 그리고 도구 이동 \\
+	\texttt{TextOut(int x, int y, LPCTSTR ipszString, int nCount)} & 글리프 그리기 \\
+	\texttt{Rectangle(int x1, int y1, int x2, int y2)} & 좌상단 \texttt{(x1, y1)}, 우하단 \texttt{(x2, y2)}인 직사각형 그리기 \\
+	\texttt{Ellipse(int x1, int y1, int x2, int y2)} & 좌상단 \texttt{(x1, y1)}, 우하단 \texttt{(x2, y2)}에 내접하는 타원 그리기 \\
+\end{tabularx}
+
+\subsection{물 흐르는 경로 계산 알고리즘}
+
+% TODO
+
+\end{document}
