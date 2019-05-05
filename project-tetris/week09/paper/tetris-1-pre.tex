@@ -167,15 +167,15 @@
 \Procname{$\proc{DrawChange}(f, \id{command}, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$}
 \li \Comment Erase current block
 \li \If $\id{command} \isequal \id{KEY\_UP}$
-\li \Then $DrawBlock(blockY, blockX, currentBlock, (blockRotate+3) \mbox{ mod } 4, 0)$ \End
+\li \Then $proc{DrawBlock}(blockY, blockX, currentBlock, (blockRotate+3) \mbox{ mod } 4, 0)$ \End
 \li \If $\id{command} \isequal \id{KEY\_DOWN}$
-\li \Then $DrawBlock(blockY - 1, blockX, currentBlock, blockRotate, 0)$ \End
+\li \Then $proc{DrawBlock}(blockY - 1, blockX, currentBlock, blockRotate, 0)$ \End
 \li \If $\id{command} \isequal \id{KEY\_RIGHT}$
-\li \Then $DrawBlock(blockY, blockX - 1, currentBlock, blockRotate, 0)$ \End
+\li \Then $proc{DrawBlock}(blockY, blockX - 1, currentBlock, blockRotate, 0)$ \End
 \li \If $\id{command} \isequal \id{KEY\_LEFT}$
-\li \Then $DrawBlock(blockY, blockX + 1, currentBlock, blockRotate, 0)$ \End
+\li \Then $proc{DrawBlock}(blockY, blockX + 1, currentBlock, blockRotate, 0)$ \End
 \li \Comment Draw new block
-\li $DrawBlock(blockY, blockX, currentBlock, blockRotate, 1)$
+\li $proc{DrawBlock}(blockY, blockX, currentBlock, blockRotate, 1)$
 \end{codebox}
 
 \newpage
