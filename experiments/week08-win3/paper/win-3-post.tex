@@ -1,0 +1,313 @@
+\input{../../../header}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline WIN-3 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실험과 과제에서 제시한 문제를 이해하고, 이를 해결하기 위해 사용한 알고리즘 및 자료 구조를 기술한다.
+
+\section{문제}
+
+\subsection{실험}
+
+\mintinline{c++}{struct Point}
+\begin{itemize}
+	\item \mintinline{c++}{float x, y}: 2차원 직교좌표계 상의 $\left(x, y\right)$ 좌표이다.
+\end{itemize}
+
+\mintinline{c++}{struct Line}
+\begin{itemize}
+	\item \mintinline{c++}{int xl, yl}: 선분의 시점의 2차원 직교좌표계 상의 $\left(xl, yl\right)$ 좌표이다.
+	\item \mintinline{c++}{int xr, yr}: 선분의 종점의 2차원 직교좌표계 상의 $\left(xr, yr\right)$ 좌표이다.
+\end{itemize}
+
+\mintinline{c++}{struct node}: \mintinline{c++}{class mylist}를 구성하는 노드이다.
+\begin{itemize}
+	\item \mintinline{c++}{Point *point}: 노드의 값이다.
+	\item \mintinline{c++}{node *next}: 다음 노드에 대한 참조이다.
+\end{itemize}
+
+\mintinline{c++}{class mylist}: 링크드 리스트를 구현한 자료구조이다. 자료가 $n$개일 때, 이 자료구조의 공간 복잡도는 $\mathcal{O}\left(n\right)$이다.
+\begin{itemize}
+	\item \mintinline{c++}{int num} (private): 링크드 리스트가 포함하는 노드의 개수이다.
+	\item \mintinline{c++}{node *head} (private): 링크드 리스트의 첫 노드이다.
+	\item \mintinline{c++}{node *prev_node} (private): 현재 탐색하는 노드의 앞에 위치한 노드이다.
+	\item \mintinline{c++}{node *curr_node} (private): 현재 탐색하는 노드이다.
+	\item \mintinline{c++}{node* del()} (protected): 노드를 삭제하는 메서드이다.
+	\item \mintinline{c++}{mylist()} (public): 링크드 리스트 생성자이다. 빈 링크드 리스트를 생성한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{virtual ~mylist()} (public): 링크드 리스트 소멸자이다. 모든 원소를 순회하며 삭제한다. 시간 복잡도는 $\mathcal{O}\left(n\right)$이다.
+	\item \mintinline{c++}{bool isEmpty()} (public): 링크드 리스트가 비어 있는지 아닌지 확인한다. 결과는 \mintinline{c++}{(num == 0)}과 같으며, 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{void add(Point tpoint)} (public): 링크드 리스트의 맨 앞에 새 노드를 추가한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{node* move_first(void)} (public): \texttt{curr_node}를 맨 앞의 노드로 이동한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+	\item \mintinline{c++}{node* move_next(void)} (public): \texttt{curr_node}를 다음 노드로 이동한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+\end{itemize}
+
+\subsubsection{알고리즘}
+
+\paragraph{\mintinline{c++}{void init_data()}}: 값들을 초기화한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+\begin{algorithm}
+	\item 메모리에서 $mLine$, $mPoint$, $m\_flow\_point$ 해제
+	\item $mLine\_num \leftarrow 0$, $mPoint\_num \leftarrow 0$, $init\_state \leftarrow \mathrm{false}$, $draw\_state \leftarrow \mathrm{false}$, $sele\_state \leftarrow \mathrm{false}$, $curr\_point \leftarrow 0$
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void data_read(LPCTSTR fname)}}: 파일 이름이 \texttt{fname}인 파일을 읽는다.
+\begin{algorithm}
+	\item $file \leftarrow $ 파일 \texttt{fname}을 읽기 모드로 열기
+	\item $mLine\_num \leftarrow file$에서 읽기
+	\item $mLine$의 메모리를 $mLine\_num \times \mathrm{sizeof}\left(\mathrm{Line}\right)$만큼 할당
+	\item $0 \leq i < mLine\_num$인 모든 정수 $i$에 대해 반복:
+	\begin{algorithm}
+		\item $\left(mLine_i\right)_{xl}, \left(mLine_i\right)_{yl}, \left(mLine_i\right)_{xr}, \left(mLine_i\right)_{yr} \leftarrow file$에서 읽기
+		\item $\left(mLine_i\right)_{xl} > \left(mLine_i\right)_{xr}$인 경우:
+		\begin{algorithm}
+			\item $\left(mLine_i\right)_{xl}$과 $\left(mLine_i\right)_{xr}$ 교환
+			\item $\left(mLine_i\right)_{yl}$과 $\left(mLine_i\right)_{yr}$ 교환
+		\end{algorithm}
+	\end{algorithm}
+	\item $mPoint\_num \leftarrow file$에서 읽기
+	\item $mPoint$의 메모리를 $mPoint\_num \times \mathrm{sizeof}\left(\mathrm{Point}\right)$만큼 할당
+	\item $0 \leq i < mPoint\_num$인 모든 정수 $i$에 대해 반복:
+	\begin{algorithm}
+		\item $mPoint_x, mPoint_y \leftarrow file$에서 읽기
+	\end{algorithm}
+	\item $file$ 닫기
+	\item $init\_state \leftarrow \mathrm{true}$
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void waterfall_Solver()}}: 선택된 시작점에 대해 주어진 문제를 해결한다.
+$m$개의 물구멍에 대해 최악의 경우 $n$개의 선분에 대해 다른 모든 선분들과의 교점을 찾는 작업을 진행하므로,
+시간 복잡도는 $\mathcal{O}\left(mn^2\right)$이다.
+
+\begin{algorithm}
+	\item $m\_flow\_point$의 메모리를 $\mathrm{sizeof}\left(\mathrm{mylist}\right)$만큼 할당
+	\item $init\_state$가 거짓일 경우: 메서드 종료
+	\item $P \leftarrow mPoint_{curr\_point}$
+	\item $m\_flow\_point$에 $P$ 추가
+	\item $P_y > 0$일 경우 반복:
+	\begin{algorithm}
+		\item 선분 $l$, 점 $M = \left(0, 0\right)$ 선언
+		\item $0 \leq i < mLine\_num$인 정수 $i$에 대해 반복:
+		\begin{algorithm}
+			\item $k \leftarrow mLine_i$
+			\item $kxmin \leftarrow \mathrm{min}\left(k_{xl}, k_{xr}\right)$, $kxmax \leftarrow \mathrm{max}\left(k_{xl}, k_{xr}\right)$
+			\item $kxmin < P_x < kxmax$가 아닐 경우: 다음 반복 단계로 진행
+			\item $ratio \leftarrow \dfrac{P_x - k_{xl}}{k_{xr} - k_{xl}}$
+			\item $Q_y \leftarrow ratio \left(k_{yr} - k_{yl}\right) + k_{yl}$
+			\item $Q_y < M_y$일 경우: 다음 반복 단계로 진행
+			\item $Q_y > P_y$일 경우: 다음 반복 단계로 진행
+			\item $Q \leftarrow \left(P_x, Q_y\right)$
+			\item $M \leftarrow Q$, $l \leftarrow k$
+		\end{algorithm}
+		\item $M = \left(0, 0\right)$인 경우:
+		\begin{algorithm}
+			\item $base \leftarrow \left(P_x, 0\right)$
+			\item $m\_flow\_point$에 $base$ 추가
+			\item 반복 \textbf{5} 종료
+		\end{algorithm}
+		\item $M \neq \left(0, 0\right)$인 경우:
+		\begin{algorithm}
+			\item $m\_flow\_point$에 $M$ 추가
+		\end{algorithm} 
+		\item $l_{yl} < l_{yr}$인 경우:
+		\begin{algorithm}
+			\item $p \leftarrow \left(l_{xl}, l_{yl}\right)$
+			\item $P \leftarrow p$
+		\end{algorithm} 
+		\item $l_{yl} \geq l_{yr}$인 경우:
+		\begin{algorithm}
+			\item $p \leftarrow \left(l_{xr}, l_{yr}\right)$
+			\item $P \leftarrow p$
+		\end{algorithm} 
+		\item $m\_flow\_point$에 $P$ 추가
+	\end{algorithm} 
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void drawBackground(CDC* pDC)}}: DC에 배경 오브젝트를 그린다.
+\textbf{2} -- \textbf{7}은 최상단과 최하단의 경계선을, \textbf{8} -- \textbf{11}은 물구멍을,
+\textbf{12} -- \textbf{15}는 선분들을 그린다. 
+$m$개의 물구멍과 $n$개의 선분을 $\mathcal{O}\left(1\right)$의 작업으로 모두 그리므로, 
+시간 복잡도는 $\mathcal{O}\left(m+n\right)$이다.
+
+\begin{algorithm}
+	\item 정수 $i$, CPen $MyPen$ 선언
+	\item $init\_state$가 거짓일 경우: 메서드 종료
+	\item $MyPen \leftarrow $ 형식 \texttt{PS_SOLID}, 크기 10, 색상 \texttt{RGB(0, 0, 154)}인 펜 생성
+	\item $pDC$의 그리기 도구로 $MyPen$ 선택
+	\item 그리기 도구를 $\left(gXmin, gYmin\right)$으로 이동, $\left(gXmax, gYmin\right)$까지 선 긋기
+	\item 그리기 도구를 $\left(gXmin, gYmax\right)$으로 이동, $\left(gXmax, gYmax\right)$까지 선 긋기
+	\item $MyPen$ 삭제
+	\item $MyPen \leftarrow $ 형식 \texttt{PS_SOLID}, 크기 10, 색상 \texttt{RGB(0, 0, 0)}인 펜 생성
+	\item $pDC$의 그리기 도구로 $MyPen$ 선택
+	\item $0 \leq i < mPoint\_num$인 정수 $i$에 대해 반복:
+	\begin{algorithm}
+		\item $pt \leftarrow \left(gXmin, gYmax\right) + \left(20\left(mPoint_i\right)_x, -20\left(mPoint_i\right)_y\right)$
+		\item 그리기 도구를 $pt$로 이동, $pt$까지 선 긋기
+	\end{algorithm}
+	\item $MyPen$ 삭제
+	\item $MyPen \leftarrow $ 형식 \texttt{PS_SOLID}, 크기 3, 색상 \texttt{RGB(180, 0, 0)}인 펜 생성
+	\item $pDC$의 그리기 도구로 $MyPen$ 선택
+	\item $0 \leq i < mLine\_num$인 정수 $i$에 대해 반복:
+	\begin{algorithm}
+		\item $l \leftarrow mLine_i$
+		\item $l_s \leftarrow \left(gXmin, gYmax\right) + \left(20l_{xl}, -20l_{yl}\right)$
+		\item $l_e \leftarrow \left(gXmin, gYmax\right) + \left(20l_{xr}, -20l_{yr}\right)$
+		\item 그리기 도구를 $l_s$로 이동, $l_e$까지 선 긋기
+	\end{algorithm}
+	\item $MyPen$ 삭제
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void drawStartPoint(CDC* pDC)}}: DC에 시작점을 그린다.
+시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+
+\begin{algorithm}
+	\item CPen $MyPen$ 선언
+	\item $init\_state$, $sele\_state$ 중 하나 이상이 거짓일 경우: 메서드 종료
+	\item $MyPen \leftarrow $ 형식 \texttt{PS_SOLID}, 크기 10, 색상 \texttt{RGB(255, 0, 0)}인 펜 생성
+	\item $pDC$의 그리기 도구로 $MyPen$ 선택
+	\item $pt \leftarrow \left(gXmin, gYmax\right) + \left(20\left(mPoint_{curr\_point}\right)_x, -20\left(mPoint_{curr\_point}\right)_y\right)$
+	\item 그리기 도구를 $pt$로 이동, $pt$까지 선 긋기
+	\item $MyPen$ 삭제
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void drawWaterflow(CDC* pDC)}}: DC에 물의 진행 방향을 그린다. 링크드 리스트
+$m\_flow\_point$의 모든 원소를 순회하므로 시간 복잡도는 $\mathcal{O}\left(\left|m\_flow\_point\right|\right)$이다.
+
+\begin{algorithm}
+	\item CPen $MyPen$ 선언
+	\item $init\_state$, $sele\_state$, $draw\_state$ 중 하나 이상이 거짓일 경우: 메서드 종료
+	\item $MyPen \leftarrow $ 형식 \texttt{PS_SOLID}, 크기 3, 색상 \texttt{RGB(0, 255, 255)}인 펜 생성
+	\item $pDC$의 그리기 도구로 $MyPen$ 선택
+	\item node 포인터 $temp$ 선언
+	\item $waterfall\_Solver()$
+	\item $m\_flow\_point$의 크기가 0일 경우: 메서드 종료
+	\item $temp \leftarrow m\_flow\_point$의 첫 노드
+	\item $curr \leftarrow \left(gXmin, gYmax\right) + \left(20\left(temp_{point}\right)_x, -20\left(temp_{point}\right)_y\right)$
+	\item $temp \leftarrow m\_flow\_point$의 다음 노드가 NULL 포인터가 아닐 경우 반복:
+	\begin{algorithm}
+		\item $curr \leftarrow \left(gXmin, gYmax\right) + \left(20\left(temp_{point}\right)_x, -20\left(temp_{point}\right)_y\right)$
+		\item $curr$까지 선 긋기
+	\end{algorithm}
+	\item $MyPen$ 삭제
+\end{algorithm}
+
+\subsection{과제}
+
+교재에 소개된 문제 해결 방법에 사용된 자료구조로는 $G=\left(V, E\right)$의 사이클을
+체크하는 데 $\mathcal{O}\left(V^2\right)$의 시간이 걸린다.
+
+하지만 그래프 $G$의 트리 여부 체크는 $\mathrm{deg}^-$를 이용한다면
+\[\left(\textrm{G is connected}\right) \wedge \left(\mathrm{card}\left\{i \middle| \mathop{\mathrm{deg^-}}V_i = 0\right\} = 1\right) \wedge \left(\mathrm{card}\left\{i \middle| \mathop{\mathrm{deg^-}}V_i > 1\right\} = 0\right)\]
+으로도 가능하다. 물론 
+\[\left(\textrm{G is connected}\right) \wedge \left(E = V - 1\right)\]
+로도 가능하지만 트라이가 트리인지 그 connectivity를 검증하기 위해서는 $\mathop{\mathrm{deg^-}}V_i = 0$인 $V_i$부터 탐색을 시작해야
+하므로 이를 만족하는 $V_i$를 구해야 할 필요성이 요구된다. 이 방법을 이용해 트리 여부를 검증한다면
+$G$를 완전히 탐색하는 데 BFS, DFS 등의 방법을 이용하여 $\mathcal{O}\left(V + E\right)$가, 모든 $V_i \in G$에 대해 $\mathop{\mathrm{deg^-}}V_i$를
+계산하는 데 $\mathcal{O}\left(E\right)$가 걸리므로 이 때의 시간 복잡도는 $\mathcal{O}\left(V + E\right)$이다.
+
+입력은 각 간선을 이루는 두 개의 정점으로만 주어지므로 $V \leq 2E$임이 자명하다. 따라서
+$\mathcal{O}\left(V + E\right)$의 시간 복잡도를 갖는 알고리즘은 $\mathcal{O}\left(V^2\right)$의 시간 복잡도를
+갖는 알고리즘보다 개선되었다고 할 수 있을 것이다.
+
+자료구조는 C++ STL\translation{Standard Template Library}의 \mintinline{c++}{std::vector}, \mintinline{c++}{std::tuple},
+\mintinline{c++}{std::queue}, \mintinline{c++}{std::unorderd_map}을 사용하였다. \mintinline{c++}{std::unorderd_map}은
+키를 해싱해 저장하는 Hash Map을 구현한 것으로 해시 충돌이 없을 경우 읽기/쓰기에는 $\mathcal{O}\left(1\right)$이 걸린다.
+
+그래프 정보를 담는 \texttt{graphs}의 자료구조는 \mintinline{c++}{std::vector<std::unordered_map<int, std::vector<int>>>}이다.
+
+\paragraph{\mintinline{c++}{void Init()}}: 값들을 초기화한다.
+\begin{algorithm}
+	\item $currCase \leftarrow 0$, $cases \leftarrow 0$, $graphs.clear()$
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{void Read_File(const char* filename)}}: 파일을 읽어서
+그래프를 메모리에 인접 리스트 형태로 저장한다.
+\begin{algorithm}
+	\item $fin \leftarrow \textrm{파일명이 }filename\textrm{인 파일의 std::ifstream 열기}$
+	\item $cases \leftarrow fin$에서 읽기
+	\item $graphs$의 크기를 $cases$로 조정
+	\item $0 \leq tc < cases$인 정수 $tc$에 대해 반복:
+	\begin{algorithm}
+		\item $n \leftarrow fin$에서 읽기
+		\item $graph = graphs_{tc}$
+		\item $0 \leq i < n$인 정수 $i$에 대해 반복:
+		\begin{algorithm}
+			\item $u, v \leftarrow fin$에서 읽기
+			\item 리스트 $graph[u]$에 $v$ 추가
+		\end{algorithm}
+	\end{algorithm}
+	\item $fin$ 닫기
+\end{algorithm}
+
+\paragraph{\mintinline{c++}{char* Check_Tree(int tc)}}: $tc$번째 테스트 케이스의 그래프가 트리인지 아닌지 판단한다.
+시간 복잡도는 위에서 보였듯이 $G=\left(V, E\right)$에 대해 $\mathcal{O}\left(V + E\right)$이다.
+
+\begin{algorithm}
+	\item $graph = graphs_{tc - 1}$
+	\item $flag \leftarrow \mathrm{true}$, std::unordered\_map$<$int, int$>$ $indegree$, std::unordered\_map$<$int, bool$>$ $visit$ 선언
+	\item $graph$의 모든 $\left\{u, u \rightarrow v\textrm{의 간선이 존재하는 }v\right\}$에 대해 반복:
+	\begin{algorithm}
+		\item $indegree_u \leftarrow 0$, $visit_u \leftarrow \mathrm{false}$
+		\item $u \rightarrow v\textrm{의 간선이 존재하는 }v$에 대해 반복:
+		\begin{algorithm}
+			\item $indegree_v \leftarrow 0$, $visit_v \leftarrow \mathrm{false}$
+		\end{algorithm}
+	\end{algorithm}
+	\item $graph$의 모든 $\left\{u, u \rightarrow v\textrm{의 간선이 존재하는 }v\right\}$에 대해 반복:
+	\begin{algorithm}
+		\item $u \rightarrow v\textrm{의 간선이 존재하는 }v$에 대해 반복:
+		\begin{algorithm}
+			\item $indegree_v \leftarrow indegree_v + 1$
+		\end{algorithm}
+	\end{algorithm}
+	\item $indegree\_0\_count \leftarrow 0$, $root \leftarrow -1$ 선언
+	\item $indegree$의 모든 $\left\{u, \mathop{\mathrm{deg^-}}u\right\}$에 대해 반복:
+	\begin{algorithm}
+		\item $\mathop{\mathrm{deg^-}}u = 0$인 경우:
+		\begin{algorithm}
+			\item $root \leftarrow u$
+			\item $indegree\_0\_count \leftarrow indegree\_0\_count + 1$
+		\end{algorithm}
+		\item $\mathop{\mathrm{deg^-}}u > 1$인 경우:
+		\begin{algorithm}
+			\item $flag \leftarrow \mathrm{false}$
+		\end{algorithm}
+	\end{algorithm}
+	\item $indegree\_0\_count \neq 1$인 경우: $flag \leftarrow \mathrm{false}$
+	\item $flag$가 참인 경우:
+	\begin{algorithm}
+		\item std::queue$<$int$>$ $q$ 선언
+		\item $q$에 $root$ 추가, $visit_{root} \leftarrow \mathrm{true}$
+		\item $q$가 비어 있지 않을 경우 반복:
+		\begin{algorithm}
+			\item $u \leftarrow q\textrm{의 첫 번째 원소}$
+			\item $q$의 첫 번째 원소 제거
+			\item 리스트 $graph_u$의 모든 원소 $v$에 대해 반복:
+			\begin{algorithm}
+				\item $visit_v$가 참인 경우: 다음 반복 단계로 진행
+				\item $visit_v \leftarrow \mathrm{true}$, $q$에 $v$ 추가
+			\end{algorithm}
+		\end{algorithm}
+		\item $visit$의 모든 $\left\{u, u\textrm{의 방문 여부}\right\}$에 대해 반복:
+		\begin{algorithm}
+			\item $u$의 방문 여부가 거짓일 경우: $flag \leftarrow \mathrm{false}$, 반복 종료
+		\end{algorithm}
+	\end{algorithm}
+	\item $flag$가 참인 경우: 문자열 \texttt{Case }$tc$\texttt{ is a tree.} 반환
+	\item $flag$가 거짓인 경우: 문자열 \texttt{Case }$tc$\texttt{ is not a tree.} 반환
+\end{algorithm}
+
+\section{학습}
+실습과 과제를 진행하면서 다음과 같은 내용을 습득할 수 있었다.
+\begin{itemize}
+	\item MFC의 구성 요소를 간단하게 이해할 수 있게 되었다.
+	\item Visual Studio에서 MFC 프로젝트를 생성하고, VS의 여러 도구들을 이용해
+	유저 인터페이스를 구성하고 코드를 작성하는 등 Windows 어플리케이션을 개발해 볼 수 있었다.
+	\item DC에 CPen을 이용해 원하는 두께와 색상의 점, 선분 등을 그리는 방법을 알 수 있었다.
+\end{itemize}
+
+
+\end{document}
