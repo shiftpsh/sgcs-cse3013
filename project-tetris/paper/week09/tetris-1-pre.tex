@@ -145,7 +145,7 @@
 \li \Do
         \For $j \gets 0$ \To $3$
 \li     \Do
-            \If $\id{block}[i][j] \isequal 1$
+            \If $\id{block}[\id{currentBlock}][\id{blockRotate}][i][j] \isequal 1$
 \li         \Then
                 $x \gets \id{blockX} + j$
 \li             $y \gets \id{blockY} + i$
@@ -166,16 +166,9 @@
 \begin{codebox}
 \Procname{$\proc{DrawChange}(f, \id{command}, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$}
 \li \Comment Erase current block
-\li \If $\id{command} \isequal \id{KEY\_UP}$
-\li \Then $\proc{DrawBlock}(blockY, blockX, currentBlock, (blockRotate+3) \mbox{ mod } 4, 0)$ \End
-\li \If $\id{command} \isequal \id{KEY\_DOWN}$
-\li \Then $\proc{DrawBlock}(blockY - 1, blockX, currentBlock, blockRotate, 0)$ \End
-\li \If $\id{command} \isequal \id{KEY\_RIGHT}$
-\li \Then $\proc{DrawBlock}(blockY, blockX - 1, currentBlock, blockRotate, 0)$ \End
-\li \If $\id{command} \isequal \id{KEY\_LEFT}$
-\li \Then $\proc{DrawBlock}(blockY, blockX + 1, currentBlock, blockRotate, 0)$ \End
+\li $\proc{DrawField}()$
 \li \Comment Draw new block
-\li $\proc{DrawBlock}(blockY, blockX, currentBlock, blockRotate, 1)$
+\li $\proc{DrawBlock}(blockY, blockX, currentBlock, blockRotate, \mbox{` '})$
 \end{codebox}
 
 \newpage
@@ -198,6 +191,7 @@
 \li         \Comment Generate new block
 \li         $\id{nextBlock}[0] \gets \id{nextBlock}[1]$
 \li         $\id{nextBlock}[1] \gets (\mbox{Random integer in 0 .. 6})$
+\li         $\proc{DrawNextBlock}(\id{nextBlock})$
 \li         $\id{blockY} \gets -1$, $\id{blockX} \gets (\mbox{Center of field})$
 \li         $\proc{DrawField}()$
 \li         $\proc{PrintScore}(\id{score})$
@@ -213,7 +207,7 @@
 \li \Do
         \For $j \gets 0$ \To $3$
 \li     \Do
-            \If $\id{block}[i][j] \isequal 1$
+            \If $\id{block}[\id{currentBlock}][\id{blockRotate}][i][j] \isequal 1$
 \li         \Then
                 $f[\id{blockY} + i][\id{blockX} + j] \gets 1$
             \End
