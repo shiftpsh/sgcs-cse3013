@@ -122,8 +122,8 @@
 
 이진 탐색 트리는 이진 트리의 일종으로서, 각 노드의 왼쪽 서브트리는 해당 노드의 값보다 작은 노드들만, 오른쪽 서브트리는 해당 노드의 값보다 큰 노드들만을 포함하고 있는 트리를 말한다.
 
-이진 탐색 트리는 삽입과 삭제에 걸리는 시간은 일반적으로 $\mathcal{O}\left(\log n\right)$이며,
-중위 순회($\mathcal{O}\left(n\right)$)할 경우 항상 정렬된 상태로 순회하게 되는 특징이 있다.
+이진 탐색 트리에서 원소 삽입과 삭제에 걸리는 시간은 일반적으로 $\mathcal{O}\left(\log n\right)$이다.
+또한 트리를 중위 순회($\mathcal{O}\left(n\right)$)할 경우 항상 정렬된 상태로 순회하게 되는 특징이 있다.
 따라서 랭킹을 정렬된 상태로 조회해야 하는 쿼리들을 수행하는 데 효율적이다.
 
 \begin{figure}[h]
@@ -305,7 +305,10 @@ RB 트리는 이진 탐색 트리에 더해 다음과 같은 성질들이 추가
 \li $\attrib{v}{parent} \gets \attrib{u}{parent}$
 \end{codebox}
 
-\proc{BST-Get}: $n$번째 순위의 노드를 가져온다.
+$i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS와 비슷한 식으로 탐색하며, 최대 $\left\lceil\log_2 n\right\rceil$개의 노드만 순회하므로
+시간 복잡도는 $\mathcal{O}\left(\log n\right)$이다.
+
+\proc{BST-Get}: $i$번째 순위의 노드를 가져온다.
 
 \begin{codebox}
 \Procname{$\proc{BST-Get}(u,\,i)$}
