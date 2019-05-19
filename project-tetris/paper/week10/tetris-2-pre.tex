@@ -103,7 +103,7 @@
                     child {edge from parent[draw = none]}
                 }
                 child {node {29}
-                    child {node {16}}
+                    child {node {24}}
                     child {edge from parent[draw = none]}
                 }
             }
@@ -317,7 +317,7 @@ $i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS
 \li \ElseIf $i > \attribb{u}{left}{size}$ \Then
 \li     \Return $\proc{BST-Get}(\attrib{u}{right},\,i-\attribb{u}{left}{size}-1)$
 \li \ElseNoIf
-\li     \Return $x$
+\li     \Return $u$
     \End
 \li $\attrib{v}{parent} \gets \attrib{u}{parent}$
 \end{codebox}

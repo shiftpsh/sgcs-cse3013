@@ -1,5 +1,13 @@
-﻿all	: tetris.o
-	gcc tetris.c -lncurses
+﻿OBJECTS = ordered_list.o tetris.o
+SRC = ordered_list.c tetris.c
+
+CC = gcc
+
+TARGET = main
+
+$(TARGET): $(OBJECTS) ordered_list.h tetris.h
+	$(CC) -o $(TARGET) $(OBJECTS) -lncurses
 
 clean:
-	rm a.out *.o
+	rm $(OBJECTS) $(TARGET)
+

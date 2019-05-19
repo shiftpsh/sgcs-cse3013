@@ -20,6 +20,7 @@
 
 // menu number
 #define MENU_PLAY '1'
+#define MENU_RANK '2'
 #define MENU_EXIT '4'
 
 // 사용자 이름의 길이
@@ -56,15 +57,15 @@ const int ColorFallback[7] = {COLOR_CYAN,    COLOR_BLUE,   COLOR_RED,
                               COLOR_RED};
 
 const int Color256[7] = {COLOR_I, COLOR_J, COLOR_L, COLOR_T,
-                      COLOR_O, COLOR_S, COLOR_N};
+                         COLOR_O, COLOR_S, COLOR_N};
 
 const int ShadowColorFallback[7] = {COLOR_WHITE, COLOR_WHITE, COLOR_WHITE,
                                     COLOR_WHITE, COLOR_WHITE, COLOR_WHITE,
                                     COLOR_WHITE};
 
 const int ShadowColor256[7] = {COLOR_I_SHADOW, COLOR_J_SHADOW, COLOR_L_SHADOW,
-                            COLOR_T_SHADOW, COLOR_O_SHADOW, COLOR_S_SHADOW,
-                            COLOR_N_SHADOW};
+                               COLOR_T_SHADOW, COLOR_O_SHADOW, COLOR_S_SHADOW,
+                               COLOR_N_SHADOW};
 
 int *Color, *ShadowColor;
 

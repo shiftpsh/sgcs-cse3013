@@ -1,6 +1,10 @@
 ﻿#include "tetris.h"
+#include "ordered_list.h"
 
 static struct sigaction act, oact;
+
+ordered_list *rankList;
+int flag_rank_invalidate = 0;
 
 int main() {
     int exit = 0;
@@ -23,6 +27,8 @@ int main() {
         init_pair(ShadowColor[i], ShadowColor[i], COLOR_BLACK);
     }
 
+    createRankList();
+
     srand((unsigned int)time(NULL));
 
     while (!exit) {
@@ -31,6 +37,9 @@ int main() {
         case MENU_PLAY:
             play();
             break;
+        case MENU_RANK:
+            rank();
+            break;
         case MENU_EXIT:
             exit = 1;
             break;
@@ -38,6 +47,8 @@ int main() {
             break;
         }
     }
+
+    writeRankFile();
 
     endwin();
     system("clear");
@@ -54,7 +65,7 @@ void InitTetris() {
     for (int i = 0; i < BLOCK_NUM; i++) {
         nextBlock[i] = rand() % 7;
     }
-   
+
     blockRotate = 0;
     blockY = -1;
     blockX = WIDTH / 2 - 2;
@@ -187,7 +198,8 @@ void DrawNextBlock(int *nextBlock) {
     }
 }
 
-void DrawBlock(int y, int x, int blockID, int blockRotate, char tile, int isShadow) {
+void DrawBlock(int y, int x, int blockID, int blockRotate, char tile,
+               int isShadow) {
     int i, j;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
@@ -290,7 +302,8 @@ int CheckToMove(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate,
 }
 
 int GhostY(int y, int x, int blockID, int blockRotate) {
-    while (CheckToMove(field, nextBlock[0], blockRotate, y + 1, x)) y++;
+    while (CheckToMove(field, nextBlock[0], blockRotate, y + 1, x))
+        y++;
     return y;
 }
 
@@ -376,29 +389,173 @@ int DeleteLine(char f[HEIGHT][WIDTH]) {
 }
 
 void DrawShadow(int y, int x, int blockID, int blockRotate) {
-	y = GhostY(y, x, blockID, blockRotate);
-	DrawBlock(y, x, blockID, blockRotate, '/', 1);
+    y = GhostY(y, x, blockID, blockRotate);
+    DrawBlock(y, x, blockID, blockRotate, '/', 1);
 }
 
 void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate) {
-	DrawShadow(y, x, blockID, blockRotate);
+    DrawShadow(y, x, blockID, blockRotate);
     DrawBlock(y, x, blockID, blockRotate, ' ', 0);
 }
 
 void createRankList() {
-    // user code
+    FILE *fp;
+
+    fp = fopen("rank.txt", "r");
+
+    if (fp == NULL) {
+        fp = fopen("rank.txt", "w");
+        if (fp == NULL) {
+            error("error: cannot create ranking\n");
+        }
+        fprintf(fp, "0\n");
+        rankList = newList();
+    } else {
+        int n;
+        char name[NAMELEN];
+        rankList = newList();
+        fscanf(fp, "%d", &n);
+
+        for (int i = 0; i < n; i++) {
+            int score;
+            fscanf(fp, "%s%d", name, &score);
+            orderedList_Insert(rankList, newEntry(score, name));
+        }
+    }
+
+    fclose(fp);
+
+    flag_rank_invalidate = 0;
 }
 
 void rank() {
-    // user code
+    int command, x, y, flag;
+    char name[NAMELEN];
+    node **query_entries = NULL;
+
+    do {
+        clear();
+        printw("1. list ranks from X to Y\n");
+        printw("2. list ranks by a specific name\n");
+        printw("3. delete a specific rank\n");
+        command = wgetch(stdscr);
+    } while ('0' >= command || command >= '4');
+
+    echo();
+
+    switch (command) {
+    case '1':
+        printw("X: ");
+        scanw("%d", &x);
+        printw("Y: ");
+        scanw("%d", &y);
+
+        if (1 > x || x > rankList->size) {
+            x = 1;
+        }
+        if (1 > y || y > rankList->size) {
+            y = rankList->size;
+        }
+
+        printw(" rank |       name       |   score   \n");
+        printw("-------------------------------------\n");
+
+        if (x > y) {
+            printw("\nsearch failure: no rank in the list\n");
+        } else {
+            query_entries = orderedList_Query(rankList, x, y);
+
+            for (int i = 0; i < y - x + 1; i++) {
+                printw(" %4d | %-17s| %-10d\n", i + x, query_entries[i]->name,
+                       query_entries[i]->score);
+            }
+
+            if (query_entries) {
+                free(query_entries);
+            }
+        }
+        break;
+    }
+    noecho();
+    getch();
 }
 
 void writeRankFile() {
-    // user code
+    FILE *fp;
+    node **query_entries;
+
+    if (!flag_rank_invalidate) {
+        return;
+    }
+
+    fp = fopen("rank.txt", "wt");
+    if (fp == NULL) {
+        error("error: cannot open rank file");
+    } else {
+        query_entries = orderedList_Query(rankList, 1, rankList->size);
+
+        fprintf(fp, "%d\n", rankList->size);
+        for (int i = 0; i < rankList->size; i++) {
+            fprintf(fp, "%s %d\n", query_entries[i]->name,
+                    query_entries[i]->score);
+        }
+
+        if (query_entries) {
+            free(query_entries);
+        }
+        freeList(rankList);
+        fclose(fp);
+    }
 }
 
 void newRank(int score) {
-    // user code
+    char name[NAMELEN];
+
+    clear();
+    echo();
+    printw("Input your name: ");
+    scanw("%s", name);
+    noecho();
+
+    if (name[0] == '\0') {
+        return;
+    }
+
+    node *new_node = newEntry(score, name);
+    orderedList_Insert(rankList, new_node);
+    int rank = orderedList_indexOf(rankList, new_node);
+    flag_rank_invalidate = 1;
+
+    int n = rankList->size;
+    if (rankList->size > 5) {
+        n = 5;
+    }
+
+    printw(" rank |       name       |   score   \n");
+    printw("-------------------------------------\n");
+    node **query_entries = orderedList_Query(rankList, 1, n);
+    for (int i = 0; i < n; i++) {
+        if (i == rank - 1) {
+            attron(A_REVERSE);
+            printw(" %4d | %-17s| %-10d\n", i + 1, query_entries[i]->name,
+                   query_entries[i]->score);
+            attroff(A_REVERSE);
+        } else {
+            printw(" %4d | %-17s| %-10d\n", i + 1, query_entries[i]->name,
+                   query_entries[i]->score);
+        }
+    }
+
+    if (rank > n) {
+        attron(A_REVERSE);
+        printw(" %4d | %-17s| %-10d\n", rank, name, score);
+        attroff(A_REVERSE);
+    }
+
+    if (query_entries) {
+        free(query_entries);
+    }
+    getch();
 }
 
 void DrawRecommend(int y, int x, int blockID, int blockRotate) {
