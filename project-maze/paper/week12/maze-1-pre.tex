@@ -1,0 +1,54 @@
+\input{../../../header}
+	
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline PRJ-2 미로 프로젝트 1주차 예비 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+마로 게임을 위한 알고리즘과 자료구조를 이해한다.
+
+\section{문제}
+\subsection{미로 생성 알고리즘}
+
+미로의 각 칸들을 정점이라고 생각하고, 인접 관계를 간선이라고 생각한다면, 미로는 그래프로 나타낼 수 있다, 여기서 완전 미로는
+최소 비용 신장 트리\translation{minimum spanning tree}로 생각할 수 있다. 그래프에서 최소 비용 신장 트리를 만드는
+알고리즘 중 하나로 프림 알고리즘\translation{Prim's algorithm}이 있다.
+프림 알고리즘은 최단 경로 탐색 알고리즘인 데이크스트라 알고리즘\translation{Djikstra's algorithm}과 비슷한
+방식으로 동작힌디.
+
+임의의 노드를 골라 트리의 루트로 만들고, 그래프의 모든 변이 들어 있는 최소 힙 $Q$에 대해,
+모든 노드가 트리에 포함되어 있지 않은 동안, 트리와 연결된 간선 가운데 트리 속의 두 꼭짓점을 연결하지 않는 가장 작은 간선을 트리에 추가한다.
+이를 의사 코드로 나타내면 다음과 같다.
+
+\begin{codebox}
+\Procname{\proc{MST-Prim}($G$, $w$, $r$)}
+\li \For each $u \in G.V$ \Do
+\li     $\attrib{u}{key} \gets \infty$
+\li     $\attrib{u}{\pi} \gets \const{null}$
+    \End
+\li $\attrib{r}{key} \gets 0$
+\li $Q \gets \attrib{G}{V}$
+\li \While $Q \neq \emptyset$ \Do
+\li     $u \gets \proc{Extract-Min}(Q)$
+\li     \For each $v \in \attrib{G}{Adj}[u]$ \Do
+\li         \If $v \in Q$ and $w(u,\,v) < \attrib{v}{key}$ \Then
+\li             $\attrib{v}{\pi} \gets u$
+\li             $\attrib{v}{key} \gets w(u,\,v)$
+            \End
+        \End
+    \End
+\end{codebox}
+
+하지만 이 프로젝트의 경우 간선들의 길이는 항상 1이므로, 최소 힙 등을 신경쓰지 않고도 알고리즘을 진행할 수 있겠다. 
+모든 노드가 트리에 포함되어 있지 않은 동안, 남아 있는 간선 중 트리와 연결된 간선 가운데 아무 간선이나 랜덤하게 골라서 추가하면 되는 것이다.
+
+$n\times m$의 격자를 그래프로 만들면 노드는 $n\times m$개, 간선은 $m\left(n - 1\right) + n\left(m - 1\right)$개이다.
+모든 간선마다 한 꼭짓점은 트리에 포함되어 있고 다른 꼭지점은 아닌 간선을 하나 골라 트리에 추가하기만 하면 되므로 간선 개수만큼의 시간이 소요된다.
+
+이렇게 얻은 최소 비용 신장 트리를 인접 리스트 자료구조로 저장한다고 가정하자. 트리의 노드는 $nm$개이므로 간선은 $nm - 1$개이다. 따라서 
+이 자료구조의 공간 복잡도는 $\mathcal{O}\left(nm\right)$이 된다.
+
+\end{document}
