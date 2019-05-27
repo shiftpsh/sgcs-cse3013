@@ -1,6 +1,5 @@
 \subsubsection{2주차: 랭킹 정보를 파일에 저장하고 읽어들이는 로직} C 표준 라이브러리 \texttt{stdio.h}의 입출력 함수
 \texttt{fprintf}와 \texttt{fscanf}를 사용해 랭킹 파일 I/O를 수행한다.
-
 삽입, 삭제 연산을 다루기 전에 우선 RB 트리의 성질들을 만족하게 하기 위해 연결 구조를 바꾸는 연산들을 정의한다. 모두 $\mathcal{O}\left(1\right)$ 연산들이다.
 
 \proc{BST-Left-Rotate}: 노드 $x$의 위치로 $x$의 오른쪽 자식을 옮긴다.
@@ -28,32 +27,8 @@
 \li $\attrib{x}\id{parent} \gets y$
 \end{codebox}
 
-\newpage
-
-\proc{BST-Right-Rotate}: 노드 $x$의 위치로 $x$의 왼쪽 자식을 옮긴다.
-\begin{codebox}
-\Procname{$\proc{BST-Right-Rotate}(x)$}
-\li \If $x$ has right child \Then
-\li \Return
-    \End
-\li $y \gets \attrib{x}{left}$
-\li $\attrib{x}{size} \gets \attribb{x}{right}{size} + \attribb{y}{right}{size} + 1$
-\li $\attrib{y}{size} \gets \attrib{x}{size} + \attribb{y}{left}{size} + 1$
-\li $\attrib{x}{left} \gets \attrib{y}{right}$
-\li \If $\attrib{y}{right} \neq \const{null}$ \Then
-\li     $\attribb{y}{right}{parent} \gets x$
-    \End
-\li $\attrib{y}{parent} \gets \attrib{y}{parent}$
-\li \If $\attrib{x}{parent} \isequal \const{null}$ \Then
-\li     $root \gets y$
-\li \ElseIf $x \isequal \attribb{x}{parent}{right}$ \Then
-\li     $\attribb{x}{parent}{right} \gets y$
-\li \ElseNoIf
-\li     $\attribb{x}{parent}{left} \gets y$
-    \End
-\li $\attrib{y}\id{right} \gets x$
-\li $\attrib{x}\id{parent} \gets y$
-\end{codebox}
+\proc{BST-Right-Rotate}: 노드 $x$의 위치로 $x$의 왼쪽 자식을 옮긴다. \proc{BST-Left-Rotate}의
+의사 코드에서 \id{left}와 \id{right}을 바꾸면 된다.
 
 \proc{BST-Transplant}: $u$의 서브트리를 $v$의 서브트리로 대체한다.
 
@@ -116,8 +91,6 @@ $i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS
 \li $\id{size} \gets \id{size} + 1$
 \end{codebox}
 
-\newpage
-    
 \begin{codebox}
 \Procname{$\proc{BST-Insert-Revalidate}(u)$}
 \li \While $\attrib{u}{color} \isequal \const{red}$ \Do
@@ -138,27 +111,11 @@ $i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS
 \li             $\proc{BST-Right-Rotate}(\attribb{u}{parent}{parent})$
             \End
 \li     \ElseNoIf
-\li         $v = \attribbb{u}{parent}{parent}left$
-\li         \If $\attrib{v}{color} \isequal \const{red}$ \Then
-\li             $\attribb{u}{parent}{color} \gets \const{black}$
-\li             $\attrib{v}{color} \gets \const{black}$
-\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
-\li             $u \gets \attribb{u}{parent}{parent}$
-\li         \ElseNoIf
-\li             \If $u \isequal \attribb{u}{parent}{left}$ \Then
-\li                 $u \gets \attrib{u}{parent}$
-\li                 $\proc{BST-Right-Rotate}(u)$
-                \End
-\li             $\attribb{u}{parent}{color} \gets \const{black}$
-\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
-\li             $\proc{BST-Left-Rotate}(\attribb{u}{parent}{parent})$
-            \End
+\li         Do the same with left and right exchanged
         \End
     \End
 \li $\attrib{root}{color} \gets \const{black}$
 \end{codebox}
-
-\newpage
 
 \subsubsection{2주차: 존재하는 랭킹 정보를 삭제하는 로직} \proc{BST-Get}를 이용해 노드를 가져오고 일반적인 트리에서 원소를 삭제하듯이 삭제한다.
 \proc{BST-Delete} 탐색 과정은 \proc{BST-Get}과 같은 시간이 걸리고, \proc{BST-Delete-Revalidate}에서 최악의 경우
@@ -193,8 +150,6 @@ $i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS
     \End
 \end{codebox}
 
-\newpage
-
 \begin{codebox}
 \Procname{$\proc{BST-Delete-Revalidate}(x)$}
 \li \While $x \neq \id{root}$ and $\attrib{x}{color} \isequal \const{black}$ \Do
@@ -220,32 +175,11 @@ $i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS
 \li             $x \gets \id{root}$
             \End
 \li     \ElseNoIf
-\li         $w \gets \attribb{x}{parent}{left}$
-\li         \If $\attrib{w}{color} \isequal \const{red}$ \Then
-\li             $\attrib{w}{color} \gets \const{black}$, $\attribb{w}{parent}{color} \gets \const{red}$
-\li             $\proc{BST-Right-Rotate}(\attrib{x}{parent})$
-\li             $w \gets \attribb{x}{parent}{left}$
-            \End
-\li         \If $\attribb{w}{right}{color} \isequal \const{black}$ and $\attribb{w}{left}{color} \isequal \const{black}$ \Then
-\li             $\attrib{w}{color} \gets \const{red}$
-\li             $x \gets \attrib{x}{parent}$
-\li         \ElseNoIf
-\li             \If $\attribb{w}{left}{color} \isequal \const{black}$ \Then
-\li                 $\attribb{w}{right}{color} \gets \const{black}$, $\attrib{w}{color} \gets \const{red}$
-\li                 $\proc{BST-Left-Rotate}(w)$
-\li                 $w \gets \attribb{x}{parent}{left}$
-                \End
-\li             $\attrib{w}{color} \gets \attribb{w}{parent}{color}$
-\li             $\attribb{x}{parent}{color} \gets \const{black}$, $\attribb{w}{left}{color} \gets \const{black}$
-\li             $\proc{BST-Right-Rotate}(\attrib{x}{parent})$
-\li             $x \gets \id{root}$
-            \End
+\li         Do the same with left and right exchanged
         \End
     \End
 \li $\attrib{x}{color} \gets \const{black}$
 \end{codebox}
-
-\newpage
 
 \subsubsection{2주차: 특정 범위 내의 랭킹을 쿼리하는 로직} $l$번째부터 $r$번째까지의 원소를 순회하도록 한다. 중위 순회한 결과값의 $l$부터 $r$번째 원소를
 반환하면 된다. 시간 복잡도는 $\mathcal{O}\left(r\right)$아다. 다만 모든 $l$부터 $r$번째 인덱스마다 $\mathcal{O}\left(\log n\right)$의
@@ -292,5 +226,3 @@ $\mathcal{O}\left(nl\right)$이다.
         \End
     \End
 \end{codebox}
-
-\newpage

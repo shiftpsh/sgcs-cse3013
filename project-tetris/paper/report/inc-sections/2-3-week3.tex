@@ -161,185 +161,7 @@ amortized $\mathcal{O}\left(n \log n\right)$의 시간에 정렬되므로, 이�
 보드 점수 계산은 \textbf{2.2}에서 언급한 18개의 휴리스틱들로 이루어진다. 보드 점수 $c$는 각각 산출된 18개의 휴리스틱 값 벡터 $\mathbf{h}$에
 18차원 계수 벡터 $\mathbf{x}$를 내적해 구할 수 있다. 식으로 나타낼 경우
 \[c = \mathbf{h} \cdot \mathbf{x}\]
-이다.
-
-휴리스틱의 식별자들은 각각 다음과 같이 정한다.
-
-\begin{tabularx}{\linewidth}{l|X}
-    식별자 & 설명 \\
-    \hline
-    \texttt{lineClears}           & 현재 상태에서 클리어되는 줄 수 \\
-    \texttt{dropHeight}           & 현재 블록이 놓인 $y$ 좌표 \\
-    \texttt{tetris}               & 현재 4라인 클리어가 가능한가의 여부 \\
-    \texttt{totalHeights}         & 모든 행의 높이의 합 \\
-    \texttt{fuzziness}            & 모든 행의 이웃한 행과의 높이의 차이의 합 \\
-    \texttt{maxHeightDifference}  & 가장 높은 행과 가장 낮은 행의 높이의 차이 \\
-    \texttt{pileHeight}           & 가장 낮은 행의 높이 \\
-    \texttt{holes}                & 구멍의 수 \\
-    \texttt{weighedHoles}         & 구멍에서 바닥까지의 거리의 합 \\
-    \texttt{holeDepthSum}         & 구멍에서 표면까지의 거리의 합 \\
-    \texttt{minHoleDepth}         & 가장 낮은 구멍의 $y$ 좌표 \\
-    \texttt{maxHoleDepth}         & 가장 높은 구멍의 $y$ 좌표 \\
-    \texttt{weightedValleys}      & 골짜기의 높이의 합 \\
-    \texttt{deepValleys}          & 높이 3 이상의 골짜기의 수 \\
-    \texttt{filledCells}          & 현재 필드의 총 셀의 개수 \\
-    \texttt{weightedCells}        & 현재 필드의 모든 셀의 높이의 합 \\
-    \texttt{weightedHighCells}    & $y$ 좌표가 10 이하인 모든 셀의 높이의 합 \\
-    \texttt{rowChunks}            & 모든 열에 대해 이웃하게 연결되어 있는 셀 요소들의 개수 \\
-\end{tabularx}
-
-\newpage
-
-각각의 값은 다음과 같이 구할 수 있다.
-
-\begin{codebox}
-\li $\id{dropHeight} \gets \id{HEIGHT} - \id{blockY} - 1$
-\end{codebox}
-
-\begin{codebox}
-\li $lineCleared \gets 0$
-\li \For $i \gets 0$ \To $\id{HEIGHT} - 1$
-\li \Do
-        $flag \gets \const{true}$
-\li     \For $j \gets 0$ \To $\id{WIDTH} - 1$
-\li     \Do
-            \If $f[i][j] \isequal 0$
-\li         \Then
-                $flag \gets \const{false}$
-            \End
-        \End
-\li     \If $flag \isequal \const{true}$
-            \Then
-\li             $lineCleared \gets lineCleared + 1$
-\li             \For $y \gets i$ \Downto $1$
-\li             \Do
-                    \For $x \gets 0$ \To $\id{WIDTH} - 1$
-\li                 \Do
-                        $f[y][x] \gets f[y - 1][x]$
-                    \End
-                \End
-\li             \For $x \gets 0$ \To $\id{WIDTH} - 1$
-\li             \Do
-                    $f[0][x] \gets 0$
-                \End
-\li             $i \gets i - 1$
-            \End
-        \End
-    \End
-\end{codebox}
-
-\begin{codebox}
-\li $\id{tetris} \gets (\id{lineCleared} \isequal 4)$
-\end{codebox}
-
-이외의 휴리스틱들을 계산하기 편하게 하기 위해 \id{startY} 배열을 정의한다. \id{startY} 배열은
-크기가 \id{WIDTH}인 배열로, 해당 열에서 0부터 \id{HEIGHT}까지 $y$좌표를 증가시켜 봤을 때 채워져 있는
-칸이 처음으로 등장한 $y$좌표이다. 다음과 같이 계산할 수 있다.
-
-\begin{codebox}
-\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
-\li     $\id{flag} \gets 0$
-\li     \For $y \gets 0$ \To $\id{HEIGHT} - 1$ \Do
-\li         \If $(y,\,x)$ is filled \Then
-\li             $\id{startY}[x] \gets y$
-\li             $\id{flag} \gets 1$
-\li             break inner loop
-            \End
-        \End
-\li     \If $\id{flag} \isequal 0$ \Then
-\li         $\id{startY}[x] \gets \id{HEIGHT}$
-        \End
-    \End
-\end{codebox}
-
-이제 이 전처리된 배열을 이용해 나머지 휴리스틱들을 계산한다.
-
-\begin{codebox}
-\li $\id{maxStartY} \gets \id{startY}[0]$, $\id{minStartY} \gets \id{startY}[0]$
-\li $\id{totalHeights} \gets \id{startY}[0]$
-\li $\id{fuzziness} \gets 0$
-\li \For $x \gets 1$ \To $\id{WIDTH} - 1$ \Do
-\li     $\id{maxStartY} \gets \max(\id{maxStartY},\,\id{startY}[x])$
-\li     $\id{minStartY} \gets \min(\id{minStartY},\,\id{startY}[x])$
-\li     $\id{fuzziness} \gets \id{fuzziness} + |\id{startY}[x] - \id{startY}[x - 1]|$
-\li     $\id{totalHeights} \gets \id{totalHeights} + \id{HEIGHT} - \id{startY}[x]$
-    \End
-\li $\id{maxHeightDifference} \gets \id{maxStartY} - \id{minStartY}$
-\li $\id{pileHeight} \gets \id{HEIGHT} - \id{minStartY}$
-\end{codebox}
-
-\begin{codebox}
-\li $\id{holes} \gets 0$, $\id{weighedHoles} \gets 0$, $\id{holeDepthSum} \gets 0$
-\li $\id{minHoleDepth} \gets \id{HEIGHT}$, $\id{maxHoleDepth} \gets 0$
-\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
-\li     \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{startY}[x] + 1$ \Do
-\li         \If $(y,\,x)$ is not filled and $(y-1,\,x)$ is filled \Then
-\li             $\id{holes} \gets \id{holes} + 1$
-\li             $\id{weighedHoles} \gets \id{weighedHoles} + y + 1$
-\li             $\id{holeDepth} \gets y - \id{startY}[x]$
-\li             $\id{holeDepthSum} \gets \id{holeDepthSum} + \id{holeDepth}$
-\li             $\id{maxHoleDepth} \gets \max(\id{maxHoleDepth}, \id{holeDepth})$
-\li             $\id{minHoleDepth} \gets \min(\id{minHoleDepth}, \id{holeDepth})$
-            \End
-        \End
-    \End    
-\end{codebox}
-
-\begin{codebox}
-\li $\id{weightedValleys} \gets 0$, $\id{deepValleys} \gets 0$
-\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
-\li     $\id{valleyCells} \gets 0$
-\li     $\id{adjacentY} \gets \mbox{minimum \id{startY} of adjacent columns}$
-\li     \For $y \gets \id{startY}[x] - 1$ \Downto $\id{adjacentY}$ \Do
-\li         \If adjacent cells to $(y,\,x)$ is filled or is a wall \Then
-\li             $\id{valleyCells} \gets \id{valleyCells} + 1$
-            \End
-        \End
-\li     $\id{weightedValleys} \gets \id{weightedValleys} + \id{valleyCells}$
-\li     \If $\id{valleyCells} > 2$ \Then
-\li         $\id{deepValleys} \gets \id{deepValleys} + 1$
-        \End
-    \End    
-\end{codebox}
-
-\begin{codebox}
-\li $\id{filledCells} \gets 0$, $\id{weightedCells} \gets 0$
-\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
-\li     \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{startY}[x]$ \Do
-\li         \If $(y,\,x)$ is filled \Then
-\li             $\id{filledCells} \gets \id{filledCells} + 1$
-\li             $\id{weightedCells} \gets \id{weightedCells} + \id{HEIGHT} - y$
-            \End
-        \End
-    \End    
-\end{codebox}
-
-\begin{codebox}
-\li $\id{weightedHighCells} \gets 0$
-\li \For $y \gets 10$ \Downto $\id{minStartY}$ \Do
-\li     \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
-\li         \If $(y,\,x)$ is filled \Then
-\li             $\id{weightedHighCells} \gets \id{weightedHighCells} + \id{11} - y$
-            \End
-        \End
-    \End    
-\end{codebox}
-
-\begin{codebox}
-\li $\id{rowChunks} \gets 0$
-\li \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{minStartY}$ \Do
-\li     \If $(y,\,0)$ and/or $(y,\,\id{WIDTH}-1)$ is not filled \Then
-\li         $\id{rowChunks} \gets \id{rowChunks} + 1$
-        \End
-\li     \For $x \gets 1$ \To $\id{WIDTH} - 1$ \Do
-\li         \If $(y,\,x)$ and $(y,\,x - 1)$ differ \Then
-\li             $\id{rowChunks} \gets \id{rowChunks} + 1$
-            \End
-        \End
-    \End    
-\end{codebox}
-
-모든 휴리스틱이 전부 구해지면 $c = \mathbf{h} \cdot \mathbf{x}$를 계산해 반환한다.
+이다. 각각의 휴리스틱을 계산하는 방법은 간단하므로 생략한다.
 
 \begin{codebox}
 \Procname{$\proc{Board-Score}(\id{field},\,\id{nextBlock},\,\id{rot},\,\id{blockY},\,\id{blockX})$}
@@ -369,12 +191,12 @@ $\mathcal{O}\left(WIDTH \times HEIGHT^2\right)$이다.
 이를 위해 JNI\translation{Java Native Interface}를 사용한다. JNI는 JVM\translation{Java Virtual Machine}
 위에서 실행되는 Java 프로그램이 네이티브 라이브러리를 참조할 수 있게 만든 만들어진 인터페이스이다.
 
-C에서 멀티쓰레딩을 구현하는 것은 어렵지만 이미 존재하는 C 코드를 JNI가 사용할 수 있는 라이브러리로 포팅하는
+C에서 멀티스레딩을 구현하는 것은 어렵지만 이미 존재하는 C 코드를 JNI가 사용할 수 있는 라이브러리로 포팅하는
 것은 비교적 쉬우므로, 우선 ncurses.h에 의존하는 기능을 전부 지우고 \texttt{main} 함수를 계수 벡터
 $\mathbf{x}$를 받아 추천 알고리즘을 시뮬레이션하게 만든다. 그리고 게임 오버 직전에 떨어뜨린 블록 수,
 점수, 블록 당 점수 등의 정보를 반환해 Java 프로그램에서 이를 받아 $\mathbf{x}$ 값에 반영하도록 한다.
 
-Java는 여러 쓰레드\translation{thread}를 생성해 동시에 여러 CPU 코어를 사용하기 쉽게 만들어진 언어이므로
+Java는 여러 스레드\translation{thread}를 생성해 동시에 여러 CPU 코어를 사용하기 쉽게 만들어진 언어이므로
 이와 같은 프로그램을 효율적으로 작성할 수 있다. 또한 Java는 플랫폼 독립적이기 때문에 macOS에서 빌드한 .jar 파일을
 Linux에서 그대로 실행시킬 수 있다. 다만, JNI에서 사용되는 네이티브 라이브러리는 macOS에서는
 .dylib, Linux에서는 .so와 같은 식으로 플랫폼 종속적이므로 따로 빌드해 줘야 한다.
