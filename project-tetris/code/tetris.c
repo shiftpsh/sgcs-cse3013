@@ -660,7 +660,7 @@ void rank() {
             if (strcmp(name, query_entries[i]->name) == 0) {
                 printw(" %4d | %-17s| %-10d\n", i + 1, query_entries[i]->name,
                        query_entries[i]->score);
-                x = 1;
+                flag = 1;
             }
         }
         if (!flag) {

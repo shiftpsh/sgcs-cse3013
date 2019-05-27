@@ -19,7 +19,7 @@
 #define BLOCK_WIDTH 4
 #define BLOCK_NUM 3
 
-#define AUTOPLAY_DROP_INTERVAL 12
+#define AUTOPLAY_DROP_INTERVAL 6
 
 // menu number
 #define MENU_PLAY '1'
