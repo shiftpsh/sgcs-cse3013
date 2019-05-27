@@ -1,0 +1,89 @@
+이 프로젝트를 제작하는 데 사용된 시스템은 총 4종류이며, 각각 cspro4.sogang.ac.kr 서버(이하 cspro), 개인 소유의 iMac(이하 shiftpsh-imac),
+개인 소유의 Windows 기반 랩탑(이하 shiftpsh-xps), 개인 소유의 AWS EC2 인스턴스(이하 shift-computing)이다.
+프로젝트는 cspro와 shiftpsh-imac, shift-computing에서 각각 빌드되었다. 프로그램은 cspro에서 디버깅되었다. 프로그램의 소스 코드는 shiftpsh-xps와 shiftpsh-imac에서 작성되었다.
+프로그램의 훈련 프로그램은 shiftpsh-imac에서 디버깅되고 빌드되었다. 프로그램의 훈련은 shift-computing에서 진행되었다.
+
+ncurses.h의 경우 shiftpsh-imac에서는 Homebrew 2.1.3를 통해 설치된 버전을 참조하었으며, 다른 환경의 경우 /usr/includes/ncurses.h에 선언되어 있는 버전 정보를 참조하였다.
+
+각각 시스템의 환경 구성은 다음과 같다.
+
+\subsubsection{cspro}\hfill
+
+\begin{tabularx}{\linewidth}{l|X}
+    항목 & 값 \\
+    \hline
+    운영 체제 & Ubuntu 16.04.2 LTS \\
+    커널 & Linux 4.4.0-141-generic \\
+    아키텍쳐 & x86_64 \\
+    \hline
+    gcc & gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1\textasciitilde{}16.04.10) \\
+    gdb & GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1 \\
+    make & GNU Make 4.1 Built for x86_64-pc-linux-gnu \\
+    \hline
+    ncurses.h & NCURSES_VERSION = ``6.0", NCURSES_VERSION_PATCH = 20160213 \\
+\end{tabularx}
+
+\newpage
+
+\subsubsection{shiftpsh-imac}\hfill
+
+\begin{tabularx}{\linewidth}{l|X}
+    항목 & 값 \\
+    \hline
+    모델 이름 & iMac (Retina 5K, 27-inch, 2017) \\
+    \hline
+    운영 체제 & macOS 10.14.4 (18E226) \\
+    커널 & Darwin 18.5.0 \\
+    아키텍쳐 & x86_64 \\
+    \hline
+    C IDE & Visual Studio Code 1.34.0(1.34.0) \\
+    gcc & Apple LLVM version 10.0.1 (clang-1001.0.46.4) \\
+    make & GNU Make 3.81 built for i386-apple-darwin11.3.0 \\
+    ncurses.h & stable 6.1 (bottled) [keg-only] \\
+    \hline
+    Java IDE & IntelliJ IDEA 2018.3.4 (Community Edition) \\
+    JRE & Java(TM) SE Runtime Environment (build 1.8.0_191-b12) \\
+    JDK & javac 1.8.0_191 \\
+    JVM & OpenJDK 64-Bit Server VM by JetBrains s.r.o \\
+    Gradle & 4.10 \\
+    \hline
+    Kotlin IDE & IntelliJ IDEA 2018.3.4 (Community Edition) \\
+    Kotlin & 1.3.30 \\
+    kotlinx-coroutines-core & 1.2.12 \\
+\end{tabularx}
+
+\subsubsection{shiftpsh-xps}\hfill
+
+\begin{tabularx}{\linewidth}{l|X}
+    항목 & 값 \\
+    \hline
+    모델 이름 & Dell XPS9560-7001SLV-PUS \\
+    \hline
+    운영 체제 & Windows Home 10.0.17763.503 \\
+    아키텍쳐 & x86-64 \\
+    \hline
+    C IDE & Visual Studio Code 1.34.0(1.34.0) \\
+\end{tabularx}
+
+\newpage
+
+\subsubsection{shift-computing}\hfill
+
+\begin{tabularx}{\linewidth}{l|X}
+    항목 & 값 \\
+    \hline
+    인스턴스 유형 & m5d.24xlarge \\
+    지역 & ap-northeast-2c \\
+    vCPU 수 & 96 \\
+    \hline
+    운영 체제 & Ubuntu 18.04.1 LTS \\
+    커널 & Linux 4.15.0-1039-aws \\
+    아키텍쳐 & x86_64 \\
+    \hline
+    gcc & gcc version 7.3.0 (Ubuntu 7.3.0-27ubuntu1\textasciitilde{}18.04) \\
+    make & GNU Make 4.1 Built for x86_64-pc-linux-gnu \\
+    ncurses.h & NCURSES_VERSION = ``6.1", NCURSES_VERSION_PATCH = 20180127 \\
+    \hline
+    JRE & OpenJDK Runtime Environment (build 11.0.3+7-Ubuntu-1ubuntu218.04.1) \\
+    JVM & OpenJDK 64-Bit Server VM \\
+\end{tabularx}

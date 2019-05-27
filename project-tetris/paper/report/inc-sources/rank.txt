@@ -1,0 +1,11 @@
+10
+Jacob 20340
+Park 17990
+shiftpsh 12550
+Kim 7430
+shiftpsh 670
+Jacob 620
+Chris 450
+shiftpsh 150
+shiftpsh 130
+shiftpsh 130

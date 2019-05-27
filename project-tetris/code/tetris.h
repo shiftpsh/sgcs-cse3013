@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "decision_tree.h"
 
 #define WIDTH 10
 #define HEIGHT 22
@@ -18,15 +19,18 @@
 #define BLOCK_WIDTH 4
 #define BLOCK_NUM 3
 
+#define AUTOPLAY_DROP_INTERVAL 12
+
 // menu number
 #define MENU_PLAY '1'
 #define MENU_RANK '2'
+#define MENU_RECOMMEND_PLAY '3'
 #define MENU_EXIT '4'
 
 // 사용자 이름의 길이
 #define NAMELEN 16
 
-#define CHILDREN_MAX 36
+#define TREE_PRUNE_LIMIT 5
 
 #define COLOR_I 75
 #define COLOR_J 27
@@ -43,12 +47,6 @@
 #define COLOR_O_SHADOW 100
 #define COLOR_S_SHADOW 22
 #define COLOR_N_SHADOW 88
-
-typedef struct _RecNode {
-    int lv, score;
-    char (*f)[WIDTH];
-    struct _RecNode *c[CHILDREN_MAX];
-} RecNode;
 
 typedef enum Block { I, J, L, T, O, S, N } Block;
 
@@ -229,7 +227,33 @@ int gameOver = 0; /* 게임이 종료되면 1로 setting된다.*/
 int timed_out;
 int recommendR, recommendY,
     recommendX; // 추천 블럭 배치 정보. 차례대로 회전, Y 좌표, X 좌표
-RecNode *recRoot;
+decision_tree_node recRoot;
+int recX = 0, recY = 0, recBlock = -1, recRot = 0;
+
+int flag_rank_invalidate = 0;
+int flag_autoplay = 0;
+int droppedBlocks = 0;
+
+long double tetris_weight = -1e9;
+long double feature_weights[17] = {
+          2495.372998,      // * lineClears
+         14835.210380,      // * dropHeight
+         -4424.510336,      // * totalHeights
+          2510.417681,      // * fuzziness
+        -10355.159446,      // * maxHeightDifference
+        -18736.043387,      // * pileHeight
+         16388.428712,      // * holes
+         18910.315082,      // * weighedHoles
+         -2315.011592,      // * holeDepthSum
+          2528.129476,      // * minHoleDepth
+          3160.366363,      // * maxHoleDepth
+          6202.932983,      // * weightedValleys
+          7941.777558,      // * deepValleys
+        -23069.830702,      // * filledCells
+          2111.143954,      // * weightedCells
+          9615.179857,      // * weightedHighCells
+          7623.796777       // * rowChunks
+};
 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
@@ -397,6 +421,8 @@ void DrawBlock(int y, int x, int blockID, int blockRotate, char tile,
  ***********************************************************/
 void DrawShadow(int y, int x, int blockID, int blockRotate);
 
+void DrawRecommend(int y, int x, int blockID, int blockRotate);
+
 /***********************************************************
  *	블록과 블록의 그림자를 그린다.
  *	input	: (int) 그림자를 보여줄 블록의 왼쪽 상단모서리의 y 좌표
@@ -449,12 +475,15 @@ void writeRankFile();
  ***********************************************************/
 void newRank(int score);
 
+score_pair boardScore(char f[HEIGHT][WIDTH], int nextBlock, int rot, int y, int x);
+decision_tree_node recommend_bfs(int level, decision_tree_node * parents, int parent_count);
+
 /***********************************************************
  *	추천 블럭 배치를 구한다.
  *	input	: (RecNode*) 추천 트리의 루트
  *	return	: (int) 추천 블럭 배치를 따를 때 얻어지는 예상 스코어
  ***********************************************************/
-int recommend(RecNode *root);
+int recommend(decision_tree_node root);
 
 /***********************************************************
  *	추천 기능에 따라 블럭을 배치하여 진행하는 게임을 시작한다.

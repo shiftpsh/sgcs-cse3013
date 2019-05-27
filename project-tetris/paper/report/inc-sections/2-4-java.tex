@@ -1,0 +1,135 @@
+\subsubsection{테트리스 훈련 프로그램}
+테트리스 훈련 프로그램은 JVM 언어인 Kotlin(.kt)과 Java(.java)로 구성되어 있다. 빌드를 위해 Gradle을 사용했으며, build.gradle은 Gradle 빌드 스크립트이다.
+전체 프로젝트는 다음과 같은 파일로 구성된다.
+
+\begin{tabularx}{\linewidth}{l|X}
+    파일 이름 & 기능 \\
+    \hline
+    com.shiftpsh.tetris\_ai.main.kt & 훈련 진행 \\
+    com.shiftpsh.tetris\_ai.constraints.kt & 계수 벡터에 대한 데이터 클래스 정의 \\
+    com.shiftpsh.tetris\_ai.result.kt & 실행 결과에 대한 데이터 클래스 정의 \\
+    \hline
+    com.shiftpsh.tetris\_ai.TetrisJNI.java & 네이티브 라이브러리로 포팅한 테트리스 프로그램과 Java 훈련 프로그램 사이의 JNI 인터페이스 \\
+    \hline
+    libtetris.so & Linux x86\_64에서 빌드한, JNI로 포팅된 테트리스 프로그램의 네이티브 라이브러리 \\
+    libtetris.dylib & macOS x86\_64에서 빌드한, JNI로 포팅된 테트리스 프로그램의 네이티브 라이브러리 \\
+    \hline
+    build.gradle & 프로젝트의 빌드 정보 \\
+\end{tabularx}
+
+com.shiftpsh.tetris\_ai.main.kt에는 다음과 같은 메서드들이 있다.
+\begin{itemize}
+    \item \mintinline[breaklines]{kotlin}{fun execute(constraints: Constraints): Result}
+    테트리스 게임을 추천 모드로 가중치 \texttt{constraints}를 적용해 한 번 실행한다.
+    \item \mintinline[breaklines]{kotlin}{fun batch_execute(iterations: Int, constraints: Constraints): Result}
+    테트리스 게임을 추천 모드로 가중치 \texttt{constraints}를 적용해 \texttt{iterations}번 실행하고, 결과값의 12.5\% 절사평균을 구한다.
+    \item \mintinline[breaklines]{kotlin}{fun main()): Result}
+    훈련을 실행한다.
+\end{itemize}
+
+com.shiftpsh.tetris\_ai.constraints.kt와 com.shiftpsh.tetris\_ai.result.kt에는 각각 하나의 데이터 클래스가 정의되어 있다.
+
+\mintinline[breaklines]{kotlin}{fun execute(constraints: Constraints): Result} 함수의 코드는 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=9,lastline=16,breaklines]{kotlin}{inc-sources-java/main.kt}
+
+이 함수는 \texttt{TetrisJNI} 클래스의 \texttt{simulate} 함수를 호출한다. 아래는 \texttt{TetrisJNI} 클래스의 전체 코드이다.
+
+\inputminted[xleftmargin=\parindent,linenos,breaklines]{java}{inc-sources-java/TetrisJNI.java}
+
+\mintinline[breaklines]{java}{System.loadLibrary("tetris")}는 환경에 따라 필요한 네이티브 라이브러리를 로드한다. macOS의 경우 libtetris.dylib, 
+Linux의 경우 libtetris.so와 같은 식이다. 여기에서 \mintinline[breaklines]{java}{private native String run(String[] constraints)}의 구현은
+찾아볼 수 없는데, \mintinline[breaklines]{java}{native} 키워드는 이 함수가 네이티브 라이브러리에 구현되어 있음을 의미한다.
+
+\mintinline[breaklines]{shell}{javac -h . TetrisJNI.java}를 통해 C 프로그램을 JNI로 포팅하기 위한 헤더 파일 템플릿을 생성할 수 있다.\cite{JNI}
+생성된 헤더 파일에는 다음과 같은 코드가 있는데, 이를 구현해 주면 된다.
+
+\begin{minted}{c}
+/*
+ * Class:     com_shiftpsh_tetris_ai_TetrisJNI
+ * Method:    run
+ * Signature: ([Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_shiftpsh_tetris_1ai_TetrisJNI_run
+  (JNIEnv *, jobject, jobjectArray);
+\end{minted}
+
+이 형식들은 JDK의 jni.h에 정의된 형식들이다. \texttt{jobjectArray}가 \mintinline[breaklines]{java}{String[] constraints}를 의미한다.
+
+ncurses 기능을 전부 제거한 C 파일에는 다음과 같이 구현한다.
+
+\begin{minted}[breaklines]{c}
+JNIEXPORT jstring JNICALL Java_com_shiftpsh_tetris_1ai_TetrisJNI_run
+        (JNIEnv *env, jobject object, jobjectArray stringArray) {
+    for (int i = 0; i < 18; i++) {
+        feature_weights[i] = strtold((*env)->GetStringUTFChars(env, (jstring) ((*env)->GetObjectArrayElement(env, stringArray, 0)), 0), NULL);
+    }
+
+    srand((unsigned int)time(NULL));
+    recommendedPlay();
+
+    char buffer[1000];
+    sprintf(buffer, "%d %d %lf\n\n", score, droppedBlocks, (double) score / droppedBlocks);
+
+    return (*env)->NewStringUTF(env, buffer);
+}
+\end{minted}
+
+이 함수는 Java 문자열의 배열을 받아 C 문자열로 해석한 뒤에 이를 \texttt{long double}로 해석하고, 이를 가중치 벡터로 적용하여
+프로그램을 실행한 뒤 실행이 끝나면 점수와 게임 오버 직전까지 떨어뜨린 블록 수와 블록 당 점수를 문자열로 반환한다. 이렇게 작성된 C 파일들은
+
+\mintinline[breaklines]{shell}{gcc -fPIC -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" -shared -o libtetris.so TetrisJNI.c}
+
+명령어를 통해 네이티브 라이브러리로 컴파일할 수 있다.\cite{JNI}
+
+정리하면, 이 프로그램은 Kotlin에서 \mintinline[breaklines]{kotlin}{execute}를 호출하면 Java에서
+\mintinline[breaklines]{java}{simulate}가 호출되고, 이는 다시 JNI를 통해
+\mintinline[breaklines]{c}{Java_com_shiftpsh_tetris_1ai_TetrisJNI_run}을
+호출하는 구조이다.
+
+실제로 최적의 값을 찾는 알고리즘은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=27,lastline=63,breaklines]{kotlin}{inc-sources-java/main.kt}
+
+이는 현재까지 최적의 벡터를 평균으로 하고 분산을 50으로 하는 가우시안 분포에서 주변의 벡터를 하나 고른다. 이 벡터를 바탕으로 프로그램을 16번 실행하고 얻은 결과의
+12.5\% 절사평균을 구한다. 마지막으로 설계한 대로 확률 $p$를 산출해, 이 확률에 따라 값을 계속 업데이트하면서 진행한다.
+
+$\mathbf{0}$으로 초기값을 설정하면 훈련이 오래 걸릴 것을 예상해, 시행착오를 통해 얻은 다음 벡터를 초기값으로 설정하였다.
+
+\begin{align*}
+    \mathbf{x}_0 = 100 \left<\right.& 25,\,150,\,-45,\,25,\,-100,\,-180, \\
+    & 160,\,190,\,-24,\,25,\,30,\,60,\\
+    & 80,\,-240,\,20,\,96,\,75 \left.\right>
+\end{align*}
+
+4줄을 동시에 없애는 휴리스틱에 대한 가중치는 항상 $-10^9$로 고정시켰다.
+
+이 프로그램을 빌드하는 데 사용한 빌드 스크립트의 내용은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,breaklines]{text}{inc-sources-java/build.gradle}
+
+마지막의 \texttt{jar} 동작은 프로그램을 JAR executable로 빌드한다. 이렇게 빌드된 바이너리는
+어느 운영 체제에서나 \texttt{java -jar tetris_ai.jar}와 같은 식으로 실행할 수 있다.
+
+이렇게 만들어진 바이너리를 AWS EC2 인스턴스에서 실행시켜 봤으나, 여러 문제가 발생하였다.
+
+첫째는 \texttt{ThreadPool}을 이용해 여러 스레드를 만들어 CPU의 자원을 최대한
+활용하려 했으나, 어째서인지 단일 스레드로 높은 점수를 내는 벡터가 다중 스레드에서는
+20블록도 넘기지 못하고 게임 오버를 당하는 것이었다. 정확한 원인을 찾지 못해 결국 단일 스레드만을
+활용하도록 프로그램을 수정해야 했다.
+
+둘째는 프로그램의 실행 시간이 너무 오래 걸린다는 것이었다. 초기 벡터의 경우만 하더라도
+약 5,000블록을 진행하고도 게임 오버가 되지 않는 경우가 있었다. 이 문제는 훈련 목표에서
+게임 오버 직전까지 떨어뜨린 블록 수를 빼고 순수히 블록 당 얻은 점수로만 설정함으로써
+해결하였다.
+
+유감스럽게도 프로젝트를 진행할 수 있는 시간이 한정되어 있어서 훈련 과정을 제대로
+진행하지 못했다. 마지막으로 얻은 최적해는 다음과 같았다.
+
+\begin{align*}
+    \mathbf{x} = \left<\right.& 2495,\,14835,\,-4424,\,2510,\,-10355,\,-18376, \\
+    & 16388,\,18910,\,-2315,\,2528,\,3160,\,6203,\\
+    & 7942,\,-23070,\,2111,\,9615,\,7624 \left.\right>
+\end{align*}
+
+\newpage

@@ -1,0 +1,380 @@
+\subsubsection{3주차: 추천 위치를 계산하는 로직} 추천 위치를 계산하는 로직은 다음과 같이 세분화된다.
+\begin{itemize}
+    \item 결정 트리를 만드는 로직
+    \item 보드 상태 점수를 계산하는 로직
+    \item 결정 트리를 최적화하는 로직
+\end{itemize}
+
+현재 상태를 루트라고 하면, 다음 $n$개 블록에 대한 높이 $n+1$의 결정 트리를 만들 수 있다. 결정 트리의 각 노드에는
+보드 상태와 점수가 포함된다.
+
+공간 복잡도의 개선을 위해 탐색과 가지치기를 진행하면서 결정 트리를 만들어나간다. 가지치기를 하기 위해서는
+노드를 정렬할 필요가 있다. 아래는 $n$개의 노드를 amortized $\mathcal{O}\left(n \log n\right)$의
+시간에 정렬하는 메서드이다. Swap의 의사 코드는 trivial하므로 기술하지 않는다.
+
+\begin{codebox}
+\Procname{$\proc{Quicksort}(\id{array},\,\id{start},\,\id{end})$}
+\li \If $\id{start} \geq \id{end}$ \Then
+\li     \Return
+    \End
+\li \Comment Set pivot to first element
+\li $i \gets \id{start}$, $j \gets \id{end}$, $p \gets \id{start}$
+\li \While $i < j$ \Do
+\li     \While $\id{array}[i] \leq \id{array}[p]$ and $i < \id{end}$ \Do
+\li         $i \gets i + 1$
+        \End
+\li     \While $\id{array}[j] > \id{array}[p]$ \Do
+\li         $j \gets j + 1$
+        \End
+\li     \If $i<j$ \Then
+\li         Swap $\id{array}[i]$ and $\id{array}[j]$
+        \End
+    \End
+\li Swap $\id{array}[p]$ and $\id{array}[j]$
+\li $\proc{Quicksort}(\id{array},\,\id{start},\,\id{j} - 1)$
+\li $\proc{Quicksort}(\id{array},\,\id{j} + 1,\,\id{end})$
+\end{codebox}
+
+\begin{wrapfigure}[8]{l}{0.4\textwidth}
+    \OMINO{%
+    .............\\%
+    .............\\%
+    +-----+......\\%
+    |X.X.X|......\\%
+    |.....+.+-+..\\%
+    |X.X.X|.|T|..\\%
+    |...+-+-+.+-+\\%
+    |X.X|.|T.T.T|\\%
+    +---+.+-----+\\%
+    }
+    \caption{비효율적으로 배치된 T 블록}
+    \label{fig:inefficient-t}
+\end{wrapfigure}
+
+결정 트리를 만들 때, 블록을 놓을 수 있는 위치를 모두 계산해야 한다. 단순히 각 $x$좌표마다
+블록이 놓일 수 있는 최대 $y$좌표를 계산하는 것은 Figure \ref{fig:inefficient-t}와
+같은 상황에서 T 블록을 왼쪽으로 끼워넣어 효율적인 상황을 만들 수 있음에도 불구하고 끼워넣지 않는
+비효율적인 상황만을 탐색하게 되므로, 이런 상황과 같이 조각을 밀어넣어 필드를 더 효율적으로 만들
+수 있는 경우도 놓치지 않고 탐색하기 위해 BFS를 사용한다.
+
+\begin{codebox}
+\Procname{$\proc{FindAvailableSpots}(\id{field},\,\id{nextBlock})$}
+\li Allocate new queue $q$, $\id{avilable\_spots}$
+\li \For $\id{rot} \gets 0$ \To $4$ \Do
+\li     \For $x \gets -4$ \To $\id{WIDTH} + 4$ \Do
+\li         \If $\proc{CheckToMove}(\id{field}, \id{nextBlock}, \id{rot}, 1, x)) \isequal \const{true}$ \Then
+\li             Emplace $(5, x + 4, \id{rot})$ to $q$
+            \End
+        \End
+    \End
+\li \While $\attrib{q}{size} > 0$ \Do
+\li     $(y + 4,\,x + 4,\,r) \gets \attrib{q}{front}$
+\li     Pop $q$
+\li     \For all neighboring cell $(\id{ny},\,\id{nx})$ to $(y,\,x)$ \Do
+\li         \For current rotation state and next rotation state $\id{nr}$ \Do
+\li             \If state $(\id{ny},\,\id{nx},\,\id{nr})$ not checked \Do
+\li                 \If $\proc{CheckToMove}(\id{field}, \id{nextBlock}, \id{nr}, \id{ny}, \id{nx})) \isequal \const{true}$ \Then
+\li                     \If $\id{ny} \isequal y + 1$ and $\id{nr} \isequal r$ \Do
+\li                         Emplace $(y + 4,\,x + 4,\,r)$ to $\id{avilable\_spots}$
+\li                     \ElseNoIf
+\li                         Emplace $(\id{ny} + 4,\,\id{nx} + 4,\,\id{nr})$ to $q$
+\li                     \End
+                    \End
+                \End
+            \End
+        \End
+    \End
+\li \Return $\id{avilable\_spots}$
+\end{codebox}
+
+위의 메서드는 블록을 필드 또는 바닥에 닿게 하면서 사용자가 키보드를 조작해 블록을 놓을 수 있는 모든
+위치를 BFS로 찾아 준다. 전체 필드 공간을 3-tuple을 이용한 BFS로 탐색하면서
+\proc{CheckToMove}를 호출하므로 시간 복잡도는 $\mathcal{O}\left(WIDTH
+\times HEIGHT\right)$인데, 이는 각 $x$좌표마다 블록이 놓일 수 있는 최대 $y$좌표를 계산하는
+시간 복잡도와 동일하다.
+
+결정 트리를 만드는 것과 최적화하는 것은 동시에 이루어진다. \proc{Recommend-BFS}는 한 레벨의
+노드들의 리스트를 받아 다음 노드들을 만든 후, 정렬하고, 상위 몇 개 노드들을 다시 \proc{Recommend-BFS}로
+보내 주는 재귀적 메서드이다.
+
+이 메서드는 끝 레벨이 아닐 경우 매번 호출될 때마다 \id{nodes}의 크기만큼 \proc{FindAvailableSpots}를 호출하며
+$(\id{nodes} \times \id{children})$의 크기만큼 \proc{Board-Score}를 호출한다. \id{nodes}는 위의 레벨에서 가지치기 상한선 개만큼 들어올 수 있으며
+\proc{FindAvailableSpots}의 공간 복잡도는 $\mathcal{O}\left(WIDTH \times HEIGHT\right)$이므로
+\id{children}의 공간 복잡도도 그러하고, \proc{Board-Score}의 시간 복잡도는 $\mathcal{O}\left(WIDTH \times HEIGHT^2\right)$이므로 
+노드 하나에 대해 \id{childs}를 만드는 시간은 $\mathcal{O}\left(WIDTH^2 \times HEIGHT^3\right)$이다.
+
+한편 가지치기 상한선을 $m$이라 하면, 생길 수 있는 \id{childs}의 개수는 \id{node}마다
+$\mathcal{O}\left(WIDTH \times HEIGHT\right)$개씩이고 이후에
+amortized $\mathcal{O}\left(n \log n\right)$의 시간에 정렬되므로, 이를 수행하는 데 걸리는 시간은
+\[\mathcal{O}\left(m \times WIDTH \times HEIGHT \times \log \left(m \times WIDTH \times HEIGHT\right)\right)\]
+이다. 따라서 이 메서드가 한 번 호출되려면
+\[\mathcal{O}\left(m \times WIDTH^2 \times HEIGHT^3 + m \times WIDTH \times HEIGHT \times \log \left(m \times WIDTH \times HEIGHT\right)\right)\]
+의 시간이 필요하며, 이는 $\mathcal{O}\left(m \times WIDTH^2 \times HEIGHT^3\right)$와 같다.
+
+이 작업을 트리의 높이만큼 재귀적으로 반복하므로 다음 블록의 개수를 $k$라 하면 전체 시간 복잡도는
+\[\mathcal{O}\left(k \times m \times WIDTH^2 \times HEIGHT^3\right)\]
+이다.
+
+\begin{codebox}
+\Procname{$\proc{Recommend-BFS}(\id{level},\,\id{nodes})$}
+\li \If $\id{level} \isequal \mbox{number of future blocks}$ \Then
+\li     $\id{max\_score} \gets -\infty$
+\li     $\id{max\_node} \gets \const{null}$
+\li     \For $\id{node}$ in $\id{nodes}$ \Do
+\li         \If $\id{max\_score} > \attrib{node}{score}$ \Then
+\li             $\id{max\_score} \gets \attrib{node}{score}$
+\li             $\id{max\_node} \gets \id{node}$
+            \End
+        \End
+\li     \If $\id{max\_node} \isequal \const{null}$ \Then
+\li         \Return \const{null}
+        \End
+\li     \While $\attrib{max\_node}{parent} \neq \const{null}$ and $\attribb{max\_node}{parent}{parent} \neq \const{null}$ \Then
+\li         $\id{max\_node} \gets \attrib{max\_node}{parent}$
+        \End
+\li     \Return \id{max\_node}
+    \End
+\li Allocate new list \id{childs}
+\li \For $\id{node}$ in $\id{nodes}$ \Do
+\li     $\id{children} \gets \proc{FindAvailableSpots}(\attrib{node}{field},\,\id{nextBlock}[\id{level}])$
+\li     \While $\attrib{children}{size} > 0$ \Do
+\li         Allocate new node \id{newChild}
+\li         Copy \attrib{node}{field} to \attrib{newChild}{field}
+\li         $\attrib{newChild}{curBlockID} \gets \id{nextBlock}[\id{level}]$
+\li         $(y + 4,\,x + 4,\,r) \gets \attrib{children}{front}$
+\li         $\attrib{newChild}{recBlockX} \gets x$, $\attrib{newChild}{recBlockY} \gets y$, $\attrib{newChild}{recBlockRotate} \gets r$
+\li         Pop \id{children}
+\li         $\id{board\_score} \gets \proc{Board-Score}(\attrib{newChild}{field},\,\id{nextBlock}[\id{level}])$
+\li         $\attrib{newChild}{parent} \gets \id{node}$, $\attrib{newChild}{score} \gets \id{board\_score}$
+\li         Add \id{newChild} to \id{childs}
+        \End
+    \End
+\li $\proc{Quicksort}(\id{childs},\,0,\,\mbox{count of }\id{childs}-1)$
+\li $\id{pruned\_size} \gets \min(\mbox{count of }\id{childs},\,\mbox{tree prune limit})$
+\li Allocate new list \id{pruned}
+\li \For $i \gets 0$ \To \id{pruned\_size} \Do
+\li     Add $\id{childs}[i]$ to \id{pruned}
+    \End
+\li \Return $\proc{Recommend-BFS}(\id{level} + 1,\,\id{pruned})$
+\end{codebox}
+
+보드 점수 계산은 \textbf{2.2}에서 언급한 18개의 휴리스틱들로 이루어진다. 보드 점수 $c$는 각각 산출된 18개의 휴리스틱 값 벡터 $\mathbf{h}$에
+18차원 계수 벡터 $\mathbf{x}$를 내적해 구할 수 있다. 식으로 나타낼 경우
+\[c = \mathbf{h} \cdot \mathbf{x}\]
+이다.
+
+휴리스틱의 식별자들은 각각 다음과 같이 정한다.
+
+\begin{tabularx}{\linewidth}{l|X}
+    식별자 & 설명 \\
+    \hline
+    \texttt{lineClears}           & 현재 상태에서 클리어되는 줄 수 \\
+    \texttt{dropHeight}           & 현재 블록이 놓인 $y$ 좌표 \\
+    \texttt{tetris}               & 현재 4라인 클리어가 가능한가의 여부 \\
+    \texttt{totalHeights}         & 모든 행의 높이의 합 \\
+    \texttt{fuzziness}            & 모든 행의 이웃한 행과의 높이의 차이의 합 \\
+    \texttt{maxHeightDifference}  & 가장 높은 행과 가장 낮은 행의 높이의 차이 \\
+    \texttt{pileHeight}           & 가장 낮은 행의 높이 \\
+    \texttt{holes}                & 구멍의 수 \\
+    \texttt{weighedHoles}         & 구멍에서 바닥까지의 거리의 합 \\
+    \texttt{holeDepthSum}         & 구멍에서 표면까지의 거리의 합 \\
+    \texttt{minHoleDepth}         & 가장 낮은 구멍의 $y$ 좌표 \\
+    \texttt{maxHoleDepth}         & 가장 높은 구멍의 $y$ 좌표 \\
+    \texttt{weightedValleys}      & 골짜기의 높이의 합 \\
+    \texttt{deepValleys}          & 높이 3 이상의 골짜기의 수 \\
+    \texttt{filledCells}          & 현재 필드의 총 셀의 개수 \\
+    \texttt{weightedCells}        & 현재 필드의 모든 셀의 높이의 합 \\
+    \texttt{weightedHighCells}    & $y$ 좌표가 10 이하인 모든 셀의 높이의 합 \\
+    \texttt{rowChunks}            & 모든 열에 대해 이웃하게 연결되어 있는 셀 요소들의 개수 \\
+\end{tabularx}
+
+\newpage
+
+각각의 값은 다음과 같이 구할 수 있다.
+
+\begin{codebox}
+\li $\id{dropHeight} \gets \id{HEIGHT} - \id{blockY} - 1$
+\end{codebox}
+
+\begin{codebox}
+\li $lineCleared \gets 0$
+\li \For $i \gets 0$ \To $\id{HEIGHT} - 1$
+\li \Do
+        $flag \gets \const{true}$
+\li     \For $j \gets 0$ \To $\id{WIDTH} - 1$
+\li     \Do
+            \If $f[i][j] \isequal 0$
+\li         \Then
+                $flag \gets \const{false}$
+            \End
+        \End
+\li     \If $flag \isequal \const{true}$
+            \Then
+\li             $lineCleared \gets lineCleared + 1$
+\li             \For $y \gets i$ \Downto $1$
+\li             \Do
+                    \For $x \gets 0$ \To $\id{WIDTH} - 1$
+\li                 \Do
+                        $f[y][x] \gets f[y - 1][x]$
+                    \End
+                \End
+\li             \For $x \gets 0$ \To $\id{WIDTH} - 1$
+\li             \Do
+                    $f[0][x] \gets 0$
+                \End
+\li             $i \gets i - 1$
+            \End
+        \End
+    \End
+\end{codebox}
+
+\begin{codebox}
+\li $\id{tetris} \gets (\id{lineCleared} \isequal 4)$
+\end{codebox}
+
+이외의 휴리스틱들을 계산하기 편하게 하기 위해 \id{startY} 배열을 정의한다. \id{startY} 배열은
+크기가 \id{WIDTH}인 배열로, 해당 열에서 0부터 \id{HEIGHT}까지 $y$좌표를 증가시켜 봤을 때 채워져 있는
+칸이 처음으로 등장한 $y$좌표이다. 다음과 같이 계산할 수 있다.
+
+\begin{codebox}
+\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
+\li     $\id{flag} \gets 0$
+\li     \For $y \gets 0$ \To $\id{HEIGHT} - 1$ \Do
+\li         \If $(y,\,x)$ is filled \Then
+\li             $\id{startY}[x] \gets y$
+\li             $\id{flag} \gets 1$
+\li             break inner loop
+            \End
+        \End
+\li     \If $\id{flag} \isequal 0$ \Then
+\li         $\id{startY}[x] \gets \id{HEIGHT}$
+        \End
+    \End
+\end{codebox}
+
+이제 이 전처리된 배열을 이용해 나머지 휴리스틱들을 계산한다.
+
+\begin{codebox}
+\li $\id{maxStartY} \gets \id{startY}[0]$, $\id{minStartY} \gets \id{startY}[0]$
+\li $\id{totalHeights} \gets \id{startY}[0]$
+\li $\id{fuzziness} \gets 0$
+\li \For $x \gets 1$ \To $\id{WIDTH} - 1$ \Do
+\li     $\id{maxStartY} \gets \max(\id{maxStartY},\,\id{startY}[x])$
+\li     $\id{minStartY} \gets \min(\id{minStartY},\,\id{startY}[x])$
+\li     $\id{fuzziness} \gets \id{fuzziness} + |\id{startY}[x] - \id{startY}[x - 1]|$
+\li     $\id{totalHeights} \gets \id{totalHeights} + \id{HEIGHT} - \id{startY}[x]$
+    \End
+\li $\id{maxHeightDifference} \gets \id{maxStartY} - \id{minStartY}$
+\li $\id{pileHeight} \gets \id{HEIGHT} - \id{minStartY}$
+\end{codebox}
+
+\begin{codebox}
+\li $\id{holes} \gets 0$, $\id{weighedHoles} \gets 0$, $\id{holeDepthSum} \gets 0$
+\li $\id{minHoleDepth} \gets \id{HEIGHT}$, $\id{maxHoleDepth} \gets 0$
+\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
+\li     \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{startY}[x] + 1$ \Do
+\li         \If $(y,\,x)$ is not filled and $(y-1,\,x)$ is filled \Then
+\li             $\id{holes} \gets \id{holes} + 1$
+\li             $\id{weighedHoles} \gets \id{weighedHoles} + y + 1$
+\li             $\id{holeDepth} \gets y - \id{startY}[x]$
+\li             $\id{holeDepthSum} \gets \id{holeDepthSum} + \id{holeDepth}$
+\li             $\id{maxHoleDepth} \gets \max(\id{maxHoleDepth}, \id{holeDepth})$
+\li             $\id{minHoleDepth} \gets \min(\id{minHoleDepth}, \id{holeDepth})$
+            \End
+        \End
+    \End    
+\end{codebox}
+
+\begin{codebox}
+\li $\id{weightedValleys} \gets 0$, $\id{deepValleys} \gets 0$
+\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
+\li     $\id{valleyCells} \gets 0$
+\li     $\id{adjacentY} \gets \mbox{minimum \id{startY} of adjacent columns}$
+\li     \For $y \gets \id{startY}[x] - 1$ \Downto $\id{adjacentY}$ \Do
+\li         \If adjacent cells to $(y,\,x)$ is filled or is a wall \Then
+\li             $\id{valleyCells} \gets \id{valleyCells} + 1$
+            \End
+        \End
+\li     $\id{weightedValleys} \gets \id{weightedValleys} + \id{valleyCells}$
+\li     \If $\id{valleyCells} > 2$ \Then
+\li         $\id{deepValleys} \gets \id{deepValleys} + 1$
+        \End
+    \End    
+\end{codebox}
+
+\begin{codebox}
+\li $\id{filledCells} \gets 0$, $\id{weightedCells} \gets 0$
+\li \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
+\li     \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{startY}[x]$ \Do
+\li         \If $(y,\,x)$ is filled \Then
+\li             $\id{filledCells} \gets \id{filledCells} + 1$
+\li             $\id{weightedCells} \gets \id{weightedCells} + \id{HEIGHT} - y$
+            \End
+        \End
+    \End    
+\end{codebox}
+
+\begin{codebox}
+\li $\id{weightedHighCells} \gets 0$
+\li \For $y \gets 10$ \Downto $\id{minStartY}$ \Do
+\li     \For $x \gets 0$ \To $\id{WIDTH} - 1$ \Do
+\li         \If $(y,\,x)$ is filled \Then
+\li             $\id{weightedHighCells} \gets \id{weightedHighCells} + \id{11} - y$
+            \End
+        \End
+    \End    
+\end{codebox}
+
+\begin{codebox}
+\li $\id{rowChunks} \gets 0$
+\li \For $y \gets \id{HEIGHT} - 1$ \Downto $\id{minStartY}$ \Do
+\li     \If $(y,\,0)$ and/or $(y,\,\id{WIDTH}-1)$ is not filled \Then
+\li         $\id{rowChunks} \gets \id{rowChunks} + 1$
+        \End
+\li     \For $x \gets 1$ \To $\id{WIDTH} - 1$ \Do
+\li         \If $(y,\,x)$ and $(y,\,x - 1)$ differ \Then
+\li             $\id{rowChunks} \gets \id{rowChunks} + 1$
+            \End
+        \End
+    \End    
+\end{codebox}
+
+모든 휴리스틱이 전부 구해지면 $c = \mathbf{h} \cdot \mathbf{x}$를 계산해 반환한다.
+
+\begin{codebox}
+\Procname{$\proc{Board-Score}(\id{field},\,\id{nextBlock},\,\id{rot},\,\id{blockY},\,\id{blockX})$}
+\li Calculate heuristic value vector $\mathbf{h}$
+\li \Return $\mathbf{h} \cdot \mathbf{x}$
+\end{codebox}
+
+이 메서드는 줄을 지우는 부분에서 \proc{DeleteLine}과 같은
+$\mathcal{O}\left(WIDTH \times HEIGHT^2\right)$번의 동작을 하며, 다른 휴리스틱을 구하는 부분에서는
+최대 $\mathcal{O}\left(WIDTH \times HEIGHT\right)$번의 루프를 돈다. 따라서 전체 시간 복잡도는
+$\mathcal{O}\left(WIDTH \times HEIGHT^2\right)$이다.
+
+\subsubsection{3주치: 컴퓨터가 자동으로 게임을 진행하는 로직} 자동 플레이 플래그를 만들고,
+플래그가 설정되어 있을 경우 프로그램의 실행 동작을 바꾸도록 한다. 가령 자동 플레이 플래그가
+설정되어 있고 현재 추천 위치에 블록을 놓을 수 있을 경우 \proc{BlockDown}에서 블록을
+추천 위치에 고정시며, 사용자의 입력을 모두 무시한다.
+
+\subsubsection{3주치: 추천 알고리즘을 개선하는 프로그램} 추천 알고리즘을 효과적으로 개선하기 위해
+\textbf{2.2}에서 소개한 담금질 기법을 사용한다. $T=1000$, $k=0.01$로 설정하며 $T<10^{-3}$일 경우
+충분히 최적해에 수렴했다고 보고 훈련을 종료한다. 비용 함수는 위에서 계산한 보드 점수이다.
+
+프로그램을 실행하고 게임 오버가 되기를 기다린 뒤 결과를 직접 수집하는 것은 효율적인 방법이 아니다. 보유하고 있는
+장비들은 다수의 CPU 코어를 사용할 수 있는 경우가 많은데, 프로그램을 동시에 실행할 수 있디면 컴퓨터의 자원을
+최대한 활용할 수 있아 좋을 것이다. 또한 결과가 나오기까지 직접 기다리지 않고 추천 알고리즘을 개선하는 프로그램이
+결과를 수집해서 통계까지 산출해 준다면 이상적일 것이다.
+
+이를 위해 JNI\translation{Java Native Interface}를 사용한다. JNI는 JVM\translation{Java Virtual Machine}
+위에서 실행되는 Java 프로그램이 네이티브 라이브러리를 참조할 수 있게 만든 만들어진 인터페이스이다.
+
+C에서 멀티쓰레딩을 구현하는 것은 어렵지만 이미 존재하는 C 코드를 JNI가 사용할 수 있는 라이브러리로 포팅하는
+것은 비교적 쉬우므로, 우선 ncurses.h에 의존하는 기능을 전부 지우고 \texttt{main} 함수를 계수 벡터
+$\mathbf{x}$를 받아 추천 알고리즘을 시뮬레이션하게 만든다. 그리고 게임 오버 직전에 떨어뜨린 블록 수,
+점수, 블록 당 점수 등의 정보를 반환해 Java 프로그램에서 이를 받아 $\mathbf{x}$ 값에 반영하도록 한다.
+
+Java는 여러 쓰레드\translation{thread}를 생성해 동시에 여러 CPU 코어를 사용하기 쉽게 만들어진 언어이므로
+이와 같은 프로그램을 효율적으로 작성할 수 있다. 또한 Java는 플랫폼 독립적이기 때문에 macOS에서 빌드한 .jar 파일을
+Linux에서 그대로 실행시킬 수 있다. 다만, JNI에서 사용되는 네이티브 라이브러리는 macOS에서는
+.dylib, Linux에서는 .so와 같은 식으로 플랫폼 종속적이므로 따로 빌드해 줘야 한다.

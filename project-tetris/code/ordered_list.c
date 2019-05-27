@@ -5,26 +5,26 @@
 
 #define NULL_NODE (&list->null_node)
 
-static int __bst_leftRotate(ordered_list *list, node *x);
+static int __bst_leftRotate(ordered_list list, ordered_list_node x);
 
-static int __bst_rightRotate(ordered_list *list, node *x);
+static int __bst_rightRotate(ordered_list list, ordered_list_node x);
 
-static int __bst_transplant(ordered_list *list, node *u, node *v);
+static int __bst_transplant(ordered_list list, ordered_list_node u, ordered_list_node v);
 
-static int __bst_insertRevalidate(ordered_list *list, node *u);
+static int __bst_insertRevalidate(ordered_list list, ordered_list_node u);
 
-static int __bst_removeRevalidate(ordered_list *list, node *x);
+static int __bst_removeRevalidate(ordered_list list, ordered_list_node x);
 
-static int __bst_freeNode(node *t);
+static int __bst_freeNode(ordered_list_node t);
 
-static int __bst_freeSublist(node *x, node *null);
+static int __bst_freeSublist(ordered_list_node x, ordered_list_node null);
 
-static int __bst_nodeCompare(node *a, node *b);
+static int __bst_nodeCompare(ordered_list_node a, ordered_list_node b);
 
-ordered_list *newList() {
-    ordered_list *list;
+ordered_list newList() {
+    ordered_list list;
 
-    list = (ordered_list *)malloc(sizeof(ordered_list));
+    list = (ordered_list) malloc(sizeof(struct __bst));
     list->root = NULL_NODE;
     list->null_node.parent = NULL_NODE;
     list->null_node.left = NULL_NODE;
@@ -37,7 +37,7 @@ ordered_list *newList() {
     return list;
 }
 
-int freeList(ordered_list *list) {
+int freeList(ordered_list list) {
     if (list != NULL) {
         __bst_freeSublist(list->root, NULL_NODE);
         free(list);
@@ -45,10 +45,10 @@ int freeList(ordered_list *list) {
     return 0;
 }
 
-node *newEntry(int score, char *name) {
-    node *new_node;
+ordered_list_node newEntry(int score, char *name) {
+    ordered_list_node new_node;
 
-    new_node = (node *)malloc(sizeof(node));
+    new_node = (ordered_list_node)malloc(sizeof(struct __bst_node));
 
     new_node->score = score;
     new_node->name = (char *)malloc(sizeof(char) * (strlen(name) + 1));
@@ -57,9 +57,9 @@ node *newEntry(int score, char *name) {
     return new_node;
 }
 
-int orderedList_Insert(ordered_list *list, node *u) {
-    node *x;
-    node *y;
+int orderedList_Insert(ordered_list list, ordered_list_node u) {
+    ordered_list_node x;
+    ordered_list_node y;
 
     u->order = list->total_order++;
     u->size = 1;
@@ -91,8 +91,8 @@ int orderedList_Insert(ordered_list *list, node *u) {
     return 0;
 }
 
-int orderedList_Delete(ordered_list *list, int r) {
-    node *x, *y, *u;
+int orderedList_Delete(ordered_list list, int r) {
+    ordered_list_node x, y, u;
     int originalColor;
 
     if (!(1 <= r && r <= list->size)) {
@@ -144,17 +144,17 @@ int orderedList_Delete(ordered_list *list, int r) {
     return 0;
 }
 
-node **orderedList_Query(ordered_list *list, int l, int r) {
-    node **nodes, **stack;
+ordered_list_node *orderedList_Query(ordered_list list, int l, int r) {
+    ordered_list_node *nodes, *stack;
     int index, stx;
 
-    node *curr;
+    ordered_list_node curr;
 
     if (!(1 <= l && l <= r && r <= list->size))
         return NULL;
 
-    nodes = (node **)malloc(sizeof(node *) * (r - l + 1));
-    stack = (node **)malloc(sizeof(node *) * (list->size));
+    nodes = (ordered_list_node*)malloc(sizeof(ordered_list_node) * (r - l + 1));
+    stack = (ordered_list_node*)malloc(sizeof(ordered_list_node) * (list->size));
     index = 0;
     stx = 0;
     curr = list->root;
@@ -178,9 +178,9 @@ node **orderedList_Query(ordered_list *list, int l, int r) {
     return nodes;
 }
 
-int orderedList_indexOf(ordered_list *list, node *x) {
+int orderedList_indexOf(ordered_list list, ordered_list_node x) {
     int r;
-    node *y;
+    ordered_list_node y;
     if (list == NULL || x == NULL) {
         return -1;
     }
@@ -196,7 +196,7 @@ int orderedList_indexOf(ordered_list *list, node *x) {
     return r;
 }
 
-node *orderedList_GetAt(node *u, int i) {
+ordered_list_node orderedList_GetAt(ordered_list_node u, int i) {
     if (i < u->left->size) {
         return orderedList_GetAt(u->left, i);
     } else if (i > u->left->size) {
@@ -206,8 +206,8 @@ node *orderedList_GetAt(node *u, int i) {
     }
 }
 
-static int __bst_leftRotate(ordered_list *list, node *x) {
-    node *y;
+static int __bst_leftRotate(ordered_list list, ordered_list_node x) {
+    ordered_list_node y;
 
     if (x->right == NULL_NODE)
         return -1;
@@ -233,8 +233,8 @@ static int __bst_leftRotate(ordered_list *list, node *x) {
     return 0;
 }
 
-static int __bst_rightRotate(ordered_list *list, node *x) {
-    node *y;
+static int __bst_rightRotate(ordered_list list, ordered_list_node x) {
+    ordered_list_node y;
 
     if (x->left == NULL_NODE)
         return -1;
@@ -261,7 +261,7 @@ static int __bst_rightRotate(ordered_list *list, node *x) {
     return 0;
 }
 
-static int __bst_transplant(ordered_list *list, node *u, node *v) {
+static int __bst_transplant(ordered_list list, ordered_list_node u, ordered_list_node v) {
     if (u->parent == NULL_NODE) {
         list->root = v;
     } else if (u == u->parent->left) {
@@ -273,8 +273,8 @@ static int __bst_transplant(ordered_list *list, node *u, node *v) {
     return 0;
 }
 
-static int __bst_insertRevalidate(ordered_list *list, node *u) {
-    node *y;
+static int __bst_insertRevalidate(ordered_list list, ordered_list_node u) {
+    ordered_list_node y;
 
     while (u->parent->color == RED) {
         if (u->parent == u->parent->parent->left) {
@@ -315,8 +315,8 @@ static int __bst_insertRevalidate(ordered_list *list, node *u) {
     return 0;
 }
 
-static int __bst_removeRevalidate(ordered_list *list, node *x) {
-    node *w;
+static int __bst_removeRevalidate(ordered_list list, ordered_list_node x) {
+    ordered_list_node w;
     while (x != list->root && x->color == BLACK) {
         if (x == x->parent->left) {
             w = x->parent->right;
@@ -370,7 +370,7 @@ static int __bst_removeRevalidate(ordered_list *list, node *x) {
     return 0;
 }
 
-static int __bst_freeNode(node *u) {
+static int __bst_freeNode(ordered_list_node u) {
     if (u->name != NULL) {
         free(u->name);
     }
@@ -380,7 +380,7 @@ static int __bst_freeNode(node *u) {
     return 0;
 }
 
-static int __bst_freeSublist(node *x, node *null) {
+static int __bst_freeSublist(ordered_list_node x, ordered_list_node null) {
     if (x == null)
         return 0;
     __bst_freeSublist(x->left, null);
@@ -389,7 +389,7 @@ static int __bst_freeSublist(node *x, node *null) {
     return 0;
 }
 
-static int __bst_nodeCompare(node *a, node *b) {
+static int __bst_nodeCompare(ordered_list_node a, ordered_list_node b) {
     if (a->score > b->score)
         return 1;
     if (a->score < b->score)

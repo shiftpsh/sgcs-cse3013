@@ -1,0 +1,296 @@
+\subsubsection{2주차: 랭킹 정보를 파일에 저장하고 읽어들이는 로직} C 표준 라이브러리 \texttt{stdio.h}의 입출력 함수
+\texttt{fprintf}와 \texttt{fscanf}를 사용해 랭킹 파일 I/O를 수행한다.
+
+삽입, 삭제 연산을 다루기 전에 우선 RB 트리의 성질들을 만족하게 하기 위해 연결 구조를 바꾸는 연산들을 정의한다. 모두 $\mathcal{O}\left(1\right)$ 연산들이다.
+
+\proc{BST-Left-Rotate}: 노드 $x$의 위치로 $x$의 오른쪽 자식을 옮긴다.
+\begin{codebox}
+\Procname{$\proc{BST-Left-Rotate}(x)$}
+\li \If $x$ has left child \Then
+\li \Return
+    \End
+\li $y \gets \attrib{x}{right}$
+\li $\attrib{x}{size} \gets \attribb{x}{left}{size} + \attribb{y}{left}{size} + 1$
+\li $\attrib{y}{size} \gets \attrib{x}{size} + \attribb{y}{right}{size} + 1$
+\li $\attrib{x}{right} \gets \attrib{y}{left}$
+\li \If $\attrib{y}{left} \neq \const{null}$ \Then
+\li     $\attribb{y}{left}{parent} \gets x$
+    \End
+\li $\attrib{y}{parent} \gets \attrib{y}{parent}$
+\li \If $\attrib{x}{parent} \isequal \const{null}$ \Then
+\li     $root \gets y$
+\li \ElseIf $x \isequal \attribb{x}{parent}{left}$ \Then
+\li     $\attribb{x}{parent}{left} \gets y$
+\li \ElseNoIf
+\li     $\attribb{x}{parent}{right} \gets y$
+    \End
+\li $\attrib{y}\id{left} \gets x$
+\li $\attrib{x}\id{parent} \gets y$
+\end{codebox}
+
+\newpage
+
+\proc{BST-Right-Rotate}: 노드 $x$의 위치로 $x$의 왼쪽 자식을 옮긴다.
+\begin{codebox}
+\Procname{$\proc{BST-Right-Rotate}(x)$}
+\li \If $x$ has right child \Then
+\li \Return
+    \End
+\li $y \gets \attrib{x}{left}$
+\li $\attrib{x}{size} \gets \attribb{x}{right}{size} + \attribb{y}{right}{size} + 1$
+\li $\attrib{y}{size} \gets \attrib{x}{size} + \attribb{y}{left}{size} + 1$
+\li $\attrib{x}{left} \gets \attrib{y}{right}$
+\li \If $\attrib{y}{right} \neq \const{null}$ \Then
+\li     $\attribb{y}{right}{parent} \gets x$
+    \End
+\li $\attrib{y}{parent} \gets \attrib{y}{parent}$
+\li \If $\attrib{x}{parent} \isequal \const{null}$ \Then
+\li     $root \gets y$
+\li \ElseIf $x \isequal \attribb{x}{parent}{right}$ \Then
+\li     $\attribb{x}{parent}{right} \gets y$
+\li \ElseNoIf
+\li     $\attribb{x}{parent}{left} \gets y$
+    \End
+\li $\attrib{y}\id{right} \gets x$
+\li $\attrib{x}\id{parent} \gets y$
+\end{codebox}
+
+\proc{BST-Transplant}: $u$의 서브트리를 $v$의 서브트리로 대체한다.
+
+\begin{codebox}
+\Procname{$\proc{BST-Transplant}(u,\,v)$}
+\li \If $\attrib{u}{parent} \isequal \const{null}$ \Then
+\li     $\id{root} \gets v$
+\li \ElseIf $u \isequal \attribb{u}{parent}{left}$ \Then
+\li     $\attribb{u}{parent}{left} \gets v$
+\li \ElseNoIf
+\li     $\attribb{u}{parent}{right} \gets v$
+    \End
+\li $\attrib{v}{parent} \gets \attrib{u}{parent}$
+\end{codebox}
+
+$i$번째 순위의 노드를 가져오는 연산을 추가로 정의한다. DFS와 비슷한 식으로 탐색하며, 최대 $\left\lceil\log_2 n\right\rceil$개의 노드만 순회하므로
+시간 복잡도는 $\mathcal{O}\left(\log n\right)$이다.
+
+\proc{BST-Get}: $i$번째 순위의 노드를 가져온다.
+
+\begin{codebox}
+\Procname{$\proc{BST-Get}(u,\,i)$}
+\li \If $i < \attribb{u}{left}{size}$ \Then
+\li     \Return $\proc{BST-Get}(\attrib{u}{left},\,i)$
+\li \ElseIf $i > \attribb{u}{left}{size}$ \Then
+\li     \Return $\proc{BST-Get}(\attrib{u}{right},\,i-\attribb{u}{left}{size}-1)$
+\li \ElseNoIf
+\li     \Return $u$
+    \End
+\end{codebox}
+
+\subsubsection{2주차: 새로운 랭킹 정보를 삽입하는 로직} 새 데이터를 갖는 빨강색 노드를 맨 밑에 삽입하고 트리의 성질에 맞도록 노드들을 재배치한다.
+\proc{BST-Insert}에서 탐색 과정에 최악의 경우 트리의 높이만큼 탐색하고, 또 \proc{BST-Insert-Revalidate}에서 최악의 경우
+루트로 두 칸씩 되돌아면서 $\dfrac{\mbox{트리의 높이}}{2}$만큼 탐색하므로 시간 복잡도는 $\mathcal{O}\left(\log n\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{BST-Insert}(u)$}
+\li $y \gets \const{null}$
+\li $x \gets root$
+\li $\attrib{u}{size} \gets 1$
+\li \While $x \neq \const{null}$ \Do
+\li     $\attrib{x}{size} \gets \attrib{x}{size} + 1$
+\li     $y \gets x$
+\li     \If $\attrib{u}{key} < \attrib{x}{key}$ \Then
+\li         $x \gets \attrib{x}{left}$
+\li     \ElseNoIf
+\li         $x \gets \attrib{x}{right}$
+        \End
+    \End
+\li $\attrib{u}{parent} \gets y$
+\li \If $y \isequal \const{null}$ \Then
+\li     $\id{root} \gets u$
+\li \ElseIf $\attrib{u}{key} < \attrib{y}{key}$ \Then
+\li     $\attrib{y}{left} \gets u$
+\li \ElseNoIf
+\li     $\attrib{y}{right} \gets u$
+    \End
+\li $\attrib{u}{left} \gets \const{null}$, $\attrib{u}{right} \gets \const{null}$, $\attrib{u}{color} \gets \const{red}$ 
+\li $\proc{BST-Insert-Revalidate}(u)$
+\li $\id{size} \gets \id{size} + 1$
+\end{codebox}
+
+\newpage
+    
+\begin{codebox}
+\Procname{$\proc{BST-Insert-Revalidate}(u)$}
+\li \While $\attrib{u}{color} \isequal \const{red}$ \Do
+\li     \If $\attrib{u}{parent} \isequal \attribbb{u}{parent}{parent}{right}$ \Then
+\li         $v = \attribbb{u}{parent}{parent}right$
+\li         \If $\attrib{v}{color} \isequal \const{red}$ \Then
+\li             $\attribb{u}{parent}{color} \gets \const{black}$
+\li             $\attrib{v}{color} \gets \const{black}$
+\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
+\li             $u \gets \attribb{u}{parent}{parent}$
+\li         \ElseNoIf
+\li             \If $u \isequal \attribb{u}{parent}{right}$ \Then
+\li                 $u \gets \attrib{u}{parent}$
+\li                 $\proc{BST-Left-Rotate}(u)$
+                \End
+\li             $\attribb{u}{parent}{color} \gets \const{black}$
+\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
+\li             $\proc{BST-Right-Rotate}(\attribb{u}{parent}{parent})$
+            \End
+\li     \ElseNoIf
+\li         $v = \attribbb{u}{parent}{parent}left$
+\li         \If $\attrib{v}{color} \isequal \const{red}$ \Then
+\li             $\attribb{u}{parent}{color} \gets \const{black}$
+\li             $\attrib{v}{color} \gets \const{black}$
+\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
+\li             $u \gets \attribb{u}{parent}{parent}$
+\li         \ElseNoIf
+\li             \If $u \isequal \attribb{u}{parent}{left}$ \Then
+\li                 $u \gets \attrib{u}{parent}$
+\li                 $\proc{BST-Right-Rotate}(u)$
+                \End
+\li             $\attribb{u}{parent}{color} \gets \const{black}$
+\li             $\attribbb{u}{parent}{parent}{color} \gets \const{red}$
+\li             $\proc{BST-Left-Rotate}(\attribb{u}{parent}{parent})$
+            \End
+        \End
+    \End
+\li $\attrib{root}{color} \gets \const{black}$
+\end{codebox}
+
+\newpage
+
+\subsubsection{2주차: 존재하는 랭킹 정보를 삭제하는 로직} \proc{BST-Get}를 이용해 노드를 가져오고 일반적인 트리에서 원소를 삭제하듯이 삭제한다.
+\proc{BST-Delete} 탐색 과정은 \proc{BST-Get}과 같은 시간이 걸리고, \proc{BST-Delete-Revalidate}에서 최악의 경우
+마찬가지로 루트로 두 칸씩 되돌아면서 $\dfrac{\mbox{트리의 높이}}{2}$만큼 탐색하므로 시간 복잡도는 $\mathcal{O}\left(\log n\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{BST-Delete}(i)$}
+\li $u \gets \proc{BST-Get}(\id{root}, i)$
+\li $y \gets u$
+\li $\id{originalColor} \gets \attrib{y}{color}$
+\li \If $\attrib{u}{left} \isequal \const{null}$ \Then
+\li     $x \gets \attrib{u}{right}$
+\li     $\proc{BST-Transplant}(u,\,\attrib{u}{right})$
+\li \ElseIf $\attrib{u}{right} \isequal \const{null}$ \Then
+\li     $x \gets \attrib{u}{left}$
+\li     $\proc{BST-Transplant}(u,\,\attrib{u}{left})$
+\li \ElseNoIf
+\li     $y \gets \mbox{(node with minimum index in }\attrib{u}{right}\mbox{)}$
+\li     $x \gets \attrib{y}{right}$
+\li     \If $\attrib{y}{parent} \isequal u$ \Then
+\li         $\attrib{x}{parent} \gets y$
+\li     \ElseNoIf
+\li         $\proc{BST-Transplant}(y,\,\attrib{y}{right})$
+\li         $\attrib{y}{right} \gets \attrib{u}{right}$
+\li         $\attribb{y}{right}{parent} \gets y$
+        \End
+\li     $\proc{BST-Transplant}(u,\,y)$
+\li     $\attrib{y}{left} \gets \attrib{u}{left}$, $\attrib{y}{parent} \gets y$, $\attrib{y}{color} \gets \attrib{u}{color}$
+\li     \If $\id{originalColor} \isequal \const{black}$ \Then
+\li         $\proc{BST-Delete-Revalidate}(x)$
+        \End
+    \End
+\end{codebox}
+
+\newpage
+
+\begin{codebox}
+\Procname{$\proc{BST-Delete-Revalidate}(x)$}
+\li \While $x \neq \id{root}$ and $\attrib{x}{color} \isequal \const{black}$ \Do
+\li     \If $x \isequal \attribb{x}{parent}{left}$ \Then
+\li         $w \gets \attribb{x}{parent}{right}$
+\li         \If $\attrib{w}{color} \isequal \const{red}$ \Then
+\li             $\attrib{w}{color} \gets \const{black}$, $\attribb{w}{parent}{color} \gets \const{red}$
+\li             $\proc{BST-Left-Rotate}(\attrib{x}{parent})$
+\li             $w \gets \attribb{x}{parent}{right}$
+            \End
+\li         \If $\attribb{w}{left}{color} \isequal \const{black}$ and $\attribb{w}{right}{color} \isequal \const{black}$ \Then
+\li             $\attrib{w}{color} \gets \const{red}$
+\li             $x \gets \attrib{x}{parent}$
+\li         \ElseNoIf
+\li             \If $\attribb{w}{right}{color} \isequal \const{black}$ \Then
+\li                 $\attribb{w}{left}{color} \gets \const{black}$, $\attrib{w}{color} \gets \const{red}$
+\li                 $\proc{BST-Right-Rotate}(w)$
+\li                 $w \gets \attribb{x}{parent}{right}$
+                \End
+\li             $\attrib{w}{color} \gets \attribb{w}{parent}{color}$
+\li             $\attribb{x}{parent}{color} \gets \const{black}$, $\attribb{w}{right}{color} \gets \const{black}$
+\li             $\proc{BST-Left-Rotate}(\attrib{x}{parent})$
+\li             $x \gets \id{root}$
+            \End
+\li     \ElseNoIf
+\li         $w \gets \attribb{x}{parent}{left}$
+\li         \If $\attrib{w}{color} \isequal \const{red}$ \Then
+\li             $\attrib{w}{color} \gets \const{black}$, $\attribb{w}{parent}{color} \gets \const{red}$
+\li             $\proc{BST-Right-Rotate}(\attrib{x}{parent})$
+\li             $w \gets \attribb{x}{parent}{left}$
+            \End
+\li         \If $\attribb{w}{right}{color} \isequal \const{black}$ and $\attribb{w}{left}{color} \isequal \const{black}$ \Then
+\li             $\attrib{w}{color} \gets \const{red}$
+\li             $x \gets \attrib{x}{parent}$
+\li         \ElseNoIf
+\li             \If $\attribb{w}{left}{color} \isequal \const{black}$ \Then
+\li                 $\attribb{w}{right}{color} \gets \const{black}$, $\attrib{w}{color} \gets \const{red}$
+\li                 $\proc{BST-Left-Rotate}(w)$
+\li                 $w \gets \attribb{x}{parent}{left}$
+                \End
+\li             $\attrib{w}{color} \gets \attribb{w}{parent}{color}$
+\li             $\attribb{x}{parent}{color} \gets \const{black}$, $\attribb{w}{left}{color} \gets \const{black}$
+\li             $\proc{BST-Right-Rotate}(\attrib{x}{parent})$
+\li             $x \gets \id{root}$
+            \End
+        \End
+    \End
+\li $\attrib{x}{color} \gets \const{black}$
+\end{codebox}
+
+\newpage
+
+\subsubsection{2주차: 특정 범위 내의 랭킹을 쿼리하는 로직} $l$번째부터 $r$번째까지의 원소를 순회하도록 한다. 중위 순회한 결과값의 $l$부터 $r$번째 원소를
+반환하면 된다. 시간 복잡도는 $\mathcal{O}\left(r\right)$아다. 다만 모든 $l$부터 $r$번째 인덱스마다 $\mathcal{O}\left(\log n\right)$의
+\proc{BST-Get}을 호출하는 경우 시간 복잡도는 $\mathcal{O}\left(\left(r - l\right) \log n\right)$이므로
+$r$보다 $\left(r - l + 1\right) \log n$이 현저히 작을 경우 이와 같은 방법으로 최적화할 수 있어 보인다.
+아래 의사 코드는 최적화가 이뤄져 있지는 않다.
+
+\begin{codebox}
+\Procname{$\proc{BST-Query}(l,\,r)$}
+\li \If $(1 \leq l \leq r \leq \id{size}) \neq \const{true}$ \Then
+\li     \Error Array index out of range
+    \End
+\li Allocate new stack $s$
+\li $\id{curr} \gets \id{root}$
+\li \While $\id{curr} \neq \const{null}$ \Do
+\li     Push $\id{curr}$ to $s$
+\li     $\id{curr} \gets \attrib{curr}{left}$
+    \End
+\li \For $i = 1$ \To $r$ \Do
+\li     \If $l \leq i$ \Then
+\li         $\id{curr} \gets $ pop element from $s$
+\li         Add $\id{curr}$ to query result
+\li     \ElseNoIf
+\li         Pop element from $s$
+        \End
+\li     $\id{curr} \gets \attrib{curr}{right}$
+\li     \While $\id{curr} \neq \const{null}$ \Do
+\li         Push $\id{curr}$ to $s$
+\li         $\id{curr} \gets \attrib{curr}{left}$
+        \End
+    \End
+\end{codebox}
+
+\subsubsection{2주차: 특정 이름의 랭킹을 쿼리하는 로직} 모든 원소를 순회하면서 이름이 입력과 같은 원소들을 찾는다. 시간 복잡도는 완전 탐색에
+$\mathcal{O}\left(n\right)$, 길이 $l$의 이름에 대해 이름 비교에 $\mathcal{O}\left(l\right)$이 걸리므로 전체 시간 복잡도는
+$\mathcal{O}\left(nl\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{BST-QueryByName}(\id{name})$}
+\li $\id{query\_entries} \gets \proc{BST-Query}(1,\,\mbox{size of list})$
+\li \For $i = 1$ \To size of list \Do
+\li     \If $name \isequal \id{list}[i]$ \Then
+\li         Print $\id{list}[i]$
+        \End
+    \End
+\end{codebox}
+
+\newpage

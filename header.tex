@@ -1,6 +1,7 @@
 \documentclass[runningheads]{../../../llncs}
 \usepackage[paperheight=295mm,paperwidth=210mm]{geometry}
 \usepackage{graphicx}
+\usepackage{import}
 \usepackage{kotex}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{fancyvrb}
@@ -13,10 +14,10 @@
 \usepackage{menukeys}
 \usepackage{amsmath}
 \usepackage{clrscode3e} % https://www.ctan.org/pkg/clrscode3e?lang=en
-\usepackage[square,sort,comma,super]{natbib}
+\usepackage[numbers,square,super]{natbib}
 \usepackage{inconsolata} % Inconsolata
 \usepackage{mathptmx} % Times New Roman
-\usepackage[cache=false]{minted}
+\usepackage{minted}
 \graphicspath{ {./images/} }
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \renewcommand{\bibname}{참고문헌}
@@ -37,3 +38,9 @@
 \setlist[algorithm,4]{label=(\arabic*)}
 \setlist[algorithm,5]{label=(\alph*)}
 \setlist[algorithm,6]{label=(\roman*)}
+\makeatletter
+\renewcommand\NAT@citesuper[3]{\ifNAT@swa
+\if*#2*\else#2\NAT@spacechar\fi
+\unskip\kern\p@\textsuperscript{\NAT@@open#1\if*#3*\else,\NAT@spacechar#3\fi\NAT@@close}%
+   \else #1\fi\endgroup}
+\makeatother

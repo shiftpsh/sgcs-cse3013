@@ -1,10 +1,33 @@
 ﻿#include "tetris.h"
+#include "decision_tree.h"
 #include "ordered_list.h"
+#include "queue.h"
+#include <time.h>
+#include <sys/time.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) > (b) ? (b) : (a))
+#define ABS(a) ((a) > 0 ? (a) : -(a))
+
+// #define DEBUG
+// #define DEBUG_GARBAGE_MODE
 
 static struct sigaction act, oact;
 
-ordered_list *rankList;
-int flag_rank_invalidate = 0;
+int dx[4] = {-1, 1, 0, 0};
+int dy[4] = {0, 0, -1, 1};
+char visit[HEIGHT + 8][WIDTH + 8][4];
+
+struct timeval startTime, endTime;
+double recommendTimeSum = 0; // in millisecs
+long long recommendSpaceSum = 0;
+
+ordered_list rankList;
+
+#ifdef DEBUG
+int totalLineClears = 0;
+int lineClears[5];
+#endif
 
 int main() {
     int exit = 0;
@@ -40,6 +63,9 @@ int main() {
         case MENU_RANK:
             rank();
             break;
+        case MENU_RECOMMEND_PLAY:
+            recommendedPlay();
+            break;
         case MENU_EXIT:
             exit = 1;
             break;
@@ -56,11 +82,19 @@ int main() {
 }
 
 void InitTetris() {
-    int i, j;
-
-    for (j = 0; j < HEIGHT; j++)
-        for (i = 0; i < WIDTH; i++)
+    for (int j = 0; j < HEIGHT; j++)
+        for (int i = 0; i < WIDTH; i++)
             field[j][i] = 0;
+
+#ifdef DEBUG_GARBAGE_MODE
+    for (int j = HEIGHT - 10; j < HEIGHT; j++) {
+        int hole = rand() % WIDTH;
+        for (int i = 0; i < WIDTH; i++) {
+            field[j][i] = ShadowColor[j % 7];
+        }
+        field[j][hole] = 0;
+    }
+#endif
 
     for (int i = 0; i < BLOCK_NUM; i++) {
         nextBlock[i] = rand() % 7;
@@ -72,12 +106,16 @@ void InitTetris() {
     score = 0;
     gameOver = 0;
     timed_out = 0;
+    droppedBlocks = 0;
 
     DrawOutline();
     DrawField();
     DrawBlock(blockY, blockX, nextBlock[0], blockRotate, ' ', 0);
     DrawNextBlock(nextBlock);
     PrintScore(score);
+
+    decision_tree_node root = decision_tree_create();
+    recommend(root);
 }
 
 void DrawOutline() {
@@ -121,6 +159,9 @@ int GetCommand() {
         command = NOTHING;
         break;
     }
+    if (command != QUIT && flag_autoplay) {
+        return KEY_DOWN;
+    }
     return command;
 }
 
@@ -150,6 +191,11 @@ int ProcessCommand(int command) {
         if ((drawFlag = CheckToMove(field, nextBlock[0], blockRotate, blockY,
                                     blockX - 1)))
             blockX--;
+        break;
+    case ' ':
+        while ((drawFlag = CheckToMove(field, nextBlock[0], blockRotate,
+                                       blockY + 1, blockX)))
+            blockY++;
         break;
     default:
         break;
@@ -242,6 +288,13 @@ void DrawBox(int y, int x, int height, int width) {
 }
 
 void play() {
+    gettimeofday(&startTime, NULL);
+
+    struct itimerval it_val;
+    it_val.it_value.tv_sec = AUTOPLAY_DROP_INTERVAL / 1000;
+    it_val.it_value.tv_usec = (AUTOPLAY_DROP_INTERVAL * 1000) % 1000000;
+    it_val.it_interval = it_val.it_value;
+
     int command;
     clear();
     act.sa_handler = BlockDown;
@@ -249,7 +302,11 @@ void play() {
     InitTetris();
     do {
         if (timed_out == 0) {
-            alarm(1);
+            if (flag_autoplay) {
+                setitimer(ITIMER_REAL, &it_val, NULL);
+            } else {
+                alarm(1);
+            }
             timed_out = 1;
         }
 
@@ -264,6 +321,55 @@ void play() {
 
             return;
         }
+#ifndef     DEBUG
+        gettimeofday(&endTime, NULL);
+        double duration = (endTime.tv_usec - startTime.tv_usec) / 1000 + (endTime.tv_sec - startTime.tv_sec) * 1000;
+        
+        move(3, WIDTH + 25);
+        printw("time                 = %10.2f   s", duration / 1000);
+        move(4, WIDTH + 25);
+        printw("blocks               = %10d   b", droppedBlocks);
+
+        move(6, WIDTH + 25);
+        printw("score per time       = %10.2f / s", score / duration * 1000);
+        move(7, WIDTH + 25);
+        printw("score per blocks     = %10.2f / b", (double) score / droppedBlocks);
+
+        move(9, WIDTH + 25);
+        printw("recommend calc time  = %10.2f   s", recommendTimeSum / 1000);
+        move(10, WIDTH + 25);
+        if (recommendSpaceSum < 1000) {
+            printw("recommend calc space = %10.2f   B", (double)recommendSpaceSum);
+        } else if (recommendSpaceSum < 1e6) {
+            printw("recommend calc space = %10.2f  KB", (double)recommendSpaceSum / 1000);
+        } else if (recommendSpaceSum < 1e9) {
+            printw("recommend calc space = %10.2f  MB", (double)recommendSpaceSum / 1e6);
+        } else if (recommendSpaceSum < 1e12) {
+            printw("recommend calc space = %10.2f  GB", (double)recommendSpaceSum / 1e9);
+        } else if (recommendSpaceSum < 1e15) {
+            printw("recommend calc space = %10.2f  TB", (double)recommendSpaceSum / 1e12);
+        } else {
+            printw("recommend calc space = %10.2f  PB", (double)recommendSpaceSum / 1e15);
+        }
+
+        move(12, WIDTH + 25);
+        printw("score per calc time  = %10.2f / s", score / recommendTimeSum * 1000);
+        move(13, WIDTH + 25);
+        double spaceEff = (double) score / recommendSpaceSum;
+        if (spaceEff >= 1) {
+            printw("score per calc space = %10.2f / B", (double) score / recommendSpaceSum);
+        } else if (spaceEff >= 1e-3) {
+            printw("score per calc space = %10.2f /KB", (double) score / recommendSpaceSum * 1e3);
+        } else if (spaceEff >= 1e-6) {
+            printw("score per calc space = %10.2f /MB", (double) score / recommendSpaceSum * 1e6);
+        } else if (spaceEff >= 1e-9) {
+            printw("score per calc space = %10.2f /GB", (double) score / recommendSpaceSum * 1e9);
+        } else if (spaceEff >= 1e-12) {
+            printw("score per calc space = %10.2f /TB", (double) score / recommendSpaceSum * 1e12);
+        } else {
+            printw("score per calc space = %10.2f /PB", (double) score / recommendSpaceSum * 1e15);
+        }
+#endif
     } while (!gameOver);
 
     alarm(0);
@@ -271,9 +377,11 @@ void play() {
     DrawBox(HEIGHT / 2 - 1, WIDTH / 2 - 5, 1, 10);
     move(HEIGHT / 2, WIDTH / 2 - 4);
     printw("GameOver!!");
+
     refresh();
     getch();
-    newRank(score);
+    if (!flag_autoplay)
+        newRank(score);
 }
 
 char menu() {
@@ -314,16 +422,39 @@ void DrawChange(char f[HEIGHT][WIDTH], int command, int currentBlock,
 }
 
 void BlockDown(int sig) {
+    if (flag_autoplay && CheckToMove(field, nextBlock[0], recRot, recY, recX)) {
+        blockX = recX;
+        blockY = recY;
+        blockRotate = recRot;
+    }
+
     if (CheckToMove(field, nextBlock[0], blockRotate, blockY + 1, blockX)) {
         blockY++;
         DrawChange(field, KEY_DOWN, nextBlock[0], blockRotate, blockY, blockX);
     } else {
         score +=
             AddBlockToField(field, nextBlock[0], blockRotate, blockY, blockX);
+
         if (blockY == -1) {
             gameOver = true;
         } else {
             score += DeleteLine(field);
+
+#ifdef DEBUG_GARBAGE_MODE
+            if (droppedBlocks % 15 == 1) {
+                for (int j = 0; j < HEIGHT - 1; j++) {
+                    for (int i = 0; i < WIDTH; i++) {
+                        field[j][i] = field[j + 1][i];
+                    }
+                }
+
+                int randomColor = rand() % 7, holeX = rand() % WIDTH;
+                for (int i = 0; i < WIDTH; i++) {
+                    field[HEIGHT - 1][i] = ShadowColor[randomColor];
+                }
+                field[HEIGHT - 1][holeX] = 0;
+            }
+#endif
 
             for (int i = 0; i < BLOCK_NUM - 1; i++) {
                 nextBlock[i] = nextBlock[i + 1];
@@ -334,9 +465,40 @@ void BlockDown(int sig) {
             blockY = -1, blockX = WIDTH / 2 - 2;
             DrawField();
             PrintScore(score);
+            droppedBlocks++;
+
+            decision_tree_node root = decision_tree_create();
+            recommend(root);
         }
     }
     timed_out = 0;
+
+#ifdef DEBUG
+    move(HEIGHT + 3, 3);
+    printw("Total lines:     %8d     ", totalLineClears);
+
+    for (int i = 1; i <= 4; i++) {
+        double ratio = (double) lineClears[i] / totalLineClears * 100;
+
+        move(HEIGHT + 4 + i, 3);
+        if (i == 1) {
+            printw("%d line : %6.2f%% %8d     ", i, ratio, lineClears[i]);
+        } else {
+            printw("%d lines: %6.2f%% %8d     ", i, ratio, lineClears[i]);
+        }
+
+        for (int j = 0; j < 15; j++) {
+            move(HEIGHT + 4 + i, 30 + j);
+            if (ratio / 100 * 15 > j) {
+                attron(A_REVERSE);
+                printw(" ");
+                attroff(A_REVERSE);
+            } else {
+                printw(" ");
+            }
+        }
+    }
+#endif
 }
 
 int AddBlockToField(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate,
@@ -385,6 +547,13 @@ int DeleteLine(char f[HEIGHT][WIDTH]) {
         }
     }
 
+#ifdef DEBUG
+    if (erased) {
+        totalLineClears++;
+        lineClears[erased]++;
+    }
+#endif
+
     return 100 * erased * erased;
 }
 
@@ -394,7 +563,9 @@ void DrawShadow(int y, int x, int blockID, int blockRotate) {
 }
 
 void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate) {
-    DrawShadow(y, x, blockID, blockRotate);
+    DrawRecommend(recY, recX, recBlock, recRot);
+    if (!flag_autoplay)
+        DrawShadow(y, x, blockID, blockRotate);
     DrawBlock(y, x, blockID, blockRotate, ' ', 0);
 }
 
@@ -406,7 +577,8 @@ void createRankList() {
     if (fp == NULL) {
         fp = fopen("rank.txt", "w");
         if (fp == NULL) {
-            error("error: cannot create ranking\n");
+            printf("error: cannot create ranking\n");
+            exit(0);
         }
         fprintf(fp, "0\n");
         rankList = newList();
@@ -431,7 +603,7 @@ void createRankList() {
 void rank() {
     int command, x, y, flag;
     char name[NAMELEN];
-    node **query_entries = NULL;
+    ordered_list_node *query_entries = NULL;
 
     do {
         clear();
@@ -475,6 +647,40 @@ void rank() {
             }
         }
         break;
+    case '2':
+        printw("input the name: ");
+        scanw("%s", name);
+
+        // get list of all ranks and search for matching name
+        printw(" rank |       name       |   score   \n");
+        printw("-------------------------------------\n");
+        flag = 0;
+        query_entries = orderedList_Query(rankList, 1, rankList->size);
+        for (int i = 0; i < rankList->size; i++) {
+            if (strcmp(name, query_entries[i]->name) == 0) {
+                printw(" %4d | %-17s| %-10d\n", i + 1, query_entries[i]->name,
+                       query_entries[i]->score);
+                x = 1;
+            }
+        }
+        if (!flag) {
+            printw("\nsearch failure: no name in the list\n");
+        }
+        if (query_entries) {
+            free(query_entries);
+        }
+        break;
+    case '3':
+        printw("input the rank: ");
+        scanw("%d", &x);
+
+        if (orderedList_Delete(rankList, x) == 0) {
+            printw("result: the rank deleted\n");
+            flag_rank_invalidate = 1;
+        } else {
+            printw("search failure: the rank is not in the list\n");
+        }
+        break;
     }
     noecho();
     getch();
@@ -482,7 +688,7 @@ void rank() {
 
 void writeRankFile() {
     FILE *fp;
-    node **query_entries;
+    ordered_list_node *query_entries;
 
     if (!flag_rank_invalidate) {
         return;
@@ -490,7 +696,8 @@ void writeRankFile() {
 
     fp = fopen("rank.txt", "wt");
     if (fp == NULL) {
-        error("error: cannot open rank file");
+        printf("error: cannot open rank file");
+        exit(0);
     } else {
         query_entries = orderedList_Query(rankList, 1, rankList->size);
 
@@ -521,7 +728,7 @@ void newRank(int score) {
         return;
     }
 
-    node *new_node = newEntry(score, name);
+    ordered_list_node new_node = newEntry(score, name);
     orderedList_Insert(rankList, new_node);
     int rank = orderedList_indexOf(rankList, new_node);
     flag_rank_invalidate = 1;
@@ -533,7 +740,7 @@ void newRank(int score) {
 
     printw(" rank |       name       |   score   \n");
     printw("-------------------------------------\n");
-    node **query_entries = orderedList_Query(rankList, 1, n);
+    ordered_list_node *query_entries = orderedList_Query(rankList, 1, n);
     for (int i = 0; i < n; i++) {
         if (i == rank - 1) {
             attron(A_REVERSE);
@@ -559,18 +766,336 @@ void newRank(int score) {
 }
 
 void DrawRecommend(int y, int x, int blockID, int blockRotate) {
-    // user code
+    DrawBlock(y, x, blockID, blockRotate, 'R', 1);
 }
 
-int recommend(RecNode *root) {
-    int max = 0; // 미리 보이는 블럭의 추천 배치까지 고려했을 때 얻을 수 있는
-                 // 최대 점수
+score_pair boardScore(char f[HEIGHT][WIDTH], int nextBlock, int rot, int blockY,
+                       int blockX) {
+    int startY[WIDTH];
+    memset(startY, 0, sizeof(startY));
 
-    // user code
+    int dropHeight = HEIGHT - blockY - 1;
+    int adjacent = AddBlockToField(f, nextBlock, rot, blockY, blockX);
 
-    return max;
+    // Clear line
+    int lineClears = 0;
+    for (int i = 0; i < HEIGHT; i++) {
+        int flag = 1;
+        for (int j = 0; j < WIDTH; j++) {
+            if (!f[i][j])
+                flag = 0;
+        }
+        if (flag) {
+            lineClears++;
+            for (int y = i; y >= 1; y--) {
+                for (int x = 0; x < WIDTH; x++) {
+                    f[y][x] = f[y - 1][x];
+                }
+            }
+            for (int x = 0; x < WIDTH; x++) {
+                f[0][x] = 0;
+            }
+            i--;
+        }
+    }
+
+    for (int x = 0; x < WIDTH; x++) {
+        int flag = 0;
+        for (int y = 0; y < HEIGHT; ++y) {
+            if (f[y][x]) {
+                startY[x] = y;
+                flag = 1;
+                break;
+            }
+        }
+        if (!flag) startY[x] = HEIGHT;
+    }
+
+    // Calculate column heights
+    int maxStartY = startY[0], minStartY = startY[0];
+    int totalHeights = startY[0], fuzziness = 0;
+    for (int x = 1; x < WIDTH; x++) {
+        minStartY = MIN(minStartY, startY[x]);
+        maxStartY = MAX(maxStartY, startY[x]);
+        fuzziness += ABS(startY[x] - startY[x - 1]);
+        totalHeights += HEIGHT - startY[x];
+    }
+    int maxHeightDifference = maxStartY - minStartY;
+    int pileHeight = HEIGHT - minStartY;
+
+    // Calculate board heuristics
+    int holes = 0, weighedHoles = 0, holeDepthSum = 0;
+    int minHoleDepth = HEIGHT, maxHoleDepth = 0;
+    int weightedValleys = 0, deepValleys = 0;
+    int filledCells = 0, weightedCells = 0;
+
+    for (int x = 0; x < WIDTH; x++) {
+        // Holes
+        for (int y = HEIGHT - 1; y >= startY[x] + 1; y--) {
+            if (!f[y][x] && f[y - 1][x]) {
+                holes++;
+                weighedHoles += y + 1;
+
+                int holeDepth = y - startY[x];
+                holeDepthSum += holeDepth;
+                minHoleDepth = MIN(minHoleDepth, holeDepth);
+                maxHoleDepth = MAX(maxHoleDepth, holeDepth);
+            }
+        }
+
+        // Valleys
+        int valleyCells = 0;
+        int adjacentY = MIN((x == 0 ? HEIGHT : startY[x - 1]), (x + 1 == WIDTH ? HEIGHT : startY[x + 1]));
+        for (int y = startY[x] - 1; y >= adjacentY; y--) {
+            if ((x == 0 || f[y][x - 1]) && (x + 1 == WIDTH || f[y][x + 1])) {
+                valleyCells++;
+            } 
+        }
+        weightedValleys += valleyCells;
+        if (valleyCells > 2) {
+            deepValleys++;
+        }
+
+        // Filled cells
+        for (int y = HEIGHT - 1; y >= startY[x]; y--) {
+            if (f[y][x]) {
+                filledCells++;
+                weightedCells += HEIGHT - y;
+            }
+        }
+    }
+
+    int weightedHighCells = 0;
+    for (int y = 10; y >= minStartY; y--) {
+        for (int x = 0; x < WIDTH; x++) {
+            if (f[y][x]) {
+                weightedHighCells += 11 - y;
+            }
+        }
+    }
+    
+    int rowChunks = 0;
+    for(int y = HEIGHT - 1; y >= minStartY; y--) {
+        if (!f[y][0] || !f[y][WIDTH - 1]) {
+            rowChunks++;
+        }
+        for (int x = 1; x < WIDTH; x++) {
+            if (f[y][x] != f[y][x - 1]) {
+                rowChunks++;
+            }
+        }
+    }
+    
+    int tetris = (lineClears == 4) ? 1 : 0;
+
+    long double propagatedScore
+        = feature_weights[0]  * lineClears
+        + feature_weights[1]  * dropHeight;
+
+    long double boardScore
+        = tetris_weight       * tetris
+        + feature_weights[2]  * totalHeights
+        + feature_weights[3]  * fuzziness
+        + feature_weights[4]  * maxHeightDifference
+        + feature_weights[5]  * pileHeight
+        + feature_weights[6]  * holes
+        + feature_weights[7]  * weighedHoles
+        + feature_weights[8]  * holeDepthSum
+        + feature_weights[9]  * minHoleDepth
+        + feature_weights[10] * maxHoleDepth
+        + feature_weights[11] * weightedValleys
+        + feature_weights[12] * deepValleys
+        + feature_weights[13] * filledCells
+        + feature_weights[14] * weightedCells
+        + feature_weights[15] * weightedHighCells
+        + feature_weights[16] * rowChunks;
+        
+    return (score_pair) {boardScore / 10000, propagatedScore / 10000};
+}
+
+decision_tree_node recommend_bfs(int level, decision_tree_node *parents,
+                                 int parent_count) {
+    if (level == BLOCK_NUM) {
+        long double max_score = 987654321;
+        decision_tree_node max_node = NULL;
+
+        for (int i = 0; i < parent_count; i++) {
+            decision_tree_node node = parents[i];
+            if (max_score > node->score.boardScore + node->score.propagatedScore) {
+                max_node = node;
+                max_score = node->score.boardScore + node->score.propagatedScore;
+            }
+        }
+
+        if (max_node == NULL)
+            return NULL;
+        while (max_node->parent != NULL && max_node->parent->parent != NULL) {
+            max_node = max_node->parent;
+        }
+        return max_node;
+    }
+
+    decision_tree_node *childs = (decision_tree_node *)malloc(0);
+    int child_count = 0;
+
+    for (int i = 0; i < parent_count; i++) {
+        decision_tree_node node = parents[i];
+
+        int rotate_limit = 4;
+        if (nextBlock[level] == O)
+            rotate_limit = 1;
+        if (nextBlock[level] == I || nextBlock[level] == S ||
+            nextBlock[level] == N)
+            rotate_limit = 2;
+
+        memset(visit, 0, sizeof(visit));
+        queue q = queue_create();
+        queue avilable_spots = queue_create();
+
+        for (int rot = 0; rot < rotate_limit; rot++) {
+            for (int x = -4; x < WIDTH + 4; x++) {
+                if (!(CheckToMove(node->field, nextBlock[level], rot, 1, x)))
+                    continue;
+                queue_emplace(q, (triple){5, x + 4, rot});
+            }
+        }
+
+        while (q->size) {
+            triple t = queue_front(q);
+            queue_pop(q);
+
+            int y = t.first - 4;
+            int x = t.second - 4;
+            int r = t.third;
+
+            // move position
+            for (int d = 0; d < 4; d++) {
+                int ny = y + dy[d];
+                int nx = x + dx[d];
+                int nr = r;
+                if (-4 > ny || ny >= HEIGHT + 4)
+                    continue;
+                if (-4 > nx || nx >= WIDTH + 4)
+                    continue;
+                if (visit[ny + 4][nx + 4][nr])
+                    continue;
+                visit[ny + 4][nx + 4][nr] = 1;
+                if (!CheckToMove(node->field, nextBlock[level], nr, ny, nx)) {
+                    if (d == 3) {
+                        queue_emplace(avilable_spots,
+                                      (triple){y + 4, x + 4, r});
+                    }
+                    continue;
+                }
+                queue_emplace(q, (triple){ny + 4, nx + 4, nr});
+            }
+
+            // rotate
+            int ny = y;
+            int nx = x;
+            int nr = (r + 1) % rotate_limit;
+            if (-4 > ny || ny >= HEIGHT + 4)
+                continue;
+            if (-4 > nx || nx >= WIDTH + 4)
+                continue;
+            if (visit[ny + 4][nx + 4][nr])
+                continue;
+            visit[ny + 4][nx + 4][nr] = 1;
+            if (!CheckToMove(node->field, nextBlock[level], nr, ny, nx)) continue;
+            if (!CheckToMove(node->field, nextBlock[level], nr, ny + 1, nx)) {
+                queue_emplace(avilable_spots, (triple){y + 4, x + 4, r});
+                continue;
+            }
+            queue_emplace(q, (triple){ny + 4, nx + 4, nr});
+        }
+
+        queue_destroy(q);
+
+        while (avilable_spots->size) {
+            decision_tree_node newChild = decision_tree_create();
+            memcpy(newChild->field, node->field, sizeof(newChild->field));
+
+            triple t = queue_front(avilable_spots);
+            queue_pop(avilable_spots);
+
+            int y = t.first - 4;
+            int x = t.second - 4;
+            int rot = t.third;
+
+            score_pair board_score = boardScore(newChild->field, nextBlock[level], rot, y, x);
+
+            newChild->parent = node;
+            newChild->score = (score_pair) {board_score.boardScore, node->score.propagatedScore + board_score.propagatedScore};
+            newChild->curBlockID = nextBlock[level];
+            newChild->recBlockX = x;
+            newChild->recBlockY = y;
+            newChild->recBlockRotate = rot;
+            newChild->children_size = 0;
+
+            decision_tree_add_child(node, newChild);
+
+            child_count++;
+            childs = (decision_tree_node *)realloc(
+                childs, sizeof(decision_tree_node) * child_count);
+            childs[child_count - 1] = newChild;
+        }
+
+        queue_destroy(avilable_spots);
+    }
+
+    decision_tree_node_quicksort(childs, 0, child_count - 1);
+
+    int pruned_size =
+        (child_count < TREE_PRUNE_LIMIT ? child_count : TREE_PRUNE_LIMIT);
+    decision_tree_node *pruned = (decision_tree_node *)malloc(
+        sizeof(decision_tree_node) * (pruned_size));
+    for (int i = 0; i < pruned_size; i++) {
+        pruned[i] = childs[i];
+    }
+
+    return recommend_bfs(level + 1, pruned, pruned_size);
+}
+
+int recommend(decision_tree_node root) {
+    struct timeval recommendStartTime, recommendEndTime;
+    gettimeofday(&recommendStartTime, NULL);
+
+    root->parent = NULL;
+    root->score = (score_pair) {0, 0};
+    root->children_size = 0;
+    memcpy(root->field, field, sizeof(root->field));
+
+    decision_tree_node bestNode = recommend_bfs(0, &root, 1);
+    recommendSpaceSum += decision_tree_size(root);
+    
+    if (bestNode == NULL) {
+        decision_tree_destroy(root);
+        return 0;
+    }
+
+#ifdef DEBUG
+    move(1 + 6 * BLOCK_NUM, WIDTH + 11);
+    printw("sc  = %8.1llf", bestNode->score);
+    move(2 + 6 * BLOCK_NUM, WIDTH + 11);
+    printw("eff = %8.1llf", (long double)score / droppedBlocks);
+    move(3 + 6 * BLOCK_NUM, WIDTH + 11);
+    printw("blk = %8d", droppedBlocks);
+#endif
+
+    recX = bestNode->recBlockX;
+    recY = bestNode->recBlockY;
+    recBlock = bestNode->curBlockID;
+    recRot = bestNode->recBlockRotate;
+
+    decision_tree_destroy(root);
+    gettimeofday(&recommendEndTime, NULL);
+    recommendTimeSum += 
+        (recommendEndTime.tv_usec - recommendStartTime.tv_usec) / 1000 + (recommendEndTime.tv_sec - recommendStartTime.tv_sec) * 1000;
+    return 1;
 }
 
 void recommendedPlay() {
-    // user code
+    flag_autoplay = 1;
+    play();
+    flag_autoplay = 0;
 }

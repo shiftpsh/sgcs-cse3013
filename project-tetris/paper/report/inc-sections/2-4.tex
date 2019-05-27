@@ -1,0 +1,381 @@
+\textbf{2.3}에서 설명한 이론과 실제 코드를 비교하고 분석한다.
+
+\subsubsection{테트리스 게임 클라이언트}
+테트리스 게임 클라이언트는 다음과 같은 파일로 구성된다. 
+
+\begin{tabularx}{\linewidth}{l|X}
+    파일 이름 & 기능 \\
+    \hline
+    tetris.c, tetris.h & 핵심적인 테트리스 게임 로직 \\
+    \hline
+    ordered_list.c, ordered_list.h & 랭킹 정보를 담는 노드와 정렬된 리스트의 RB 트리 구현 및 관련된 알고리즘 \\
+    decision_tree.c, decision_tree.h & 가능한 미래 상태들을 저장하는 노드와 결정 트리의 구현 및 관련된 알고리즘 \\
+    queue.c, queue.h & 가능한 조각 놓는 위치를 판정하기 위해 BFS에서 사용하는 큐와 가능한 상태를 나타내는 3-tuple의 구현 및 관련된 알고리즘 \\
+    \hline
+    makefile & 프로젝트의 빌드 정보 \\
+\end{tabularx}
+
+tetris.c에는 다음과 같은 메서드들이 있다.
+
+\begin{itemize}
+    \item \mintinline[breaklines]{c}{void InitTetris()}
+    게임 실행에 필요한 전역변수를 초기화한다.
+    \item \mintinline[breaklines]{c}{void DrawOutline()}
+    게임 실행에 필요한 인터페이스를 그린다.
+    \item \mintinline[breaklines]{c}{int GetCommand()}
+    키 입력을 받는다.
+    \item \mintinline[breaklines]{c}{int ProcessCommand(int command)}
+    명령을 처리한다. 종료하라는 명령일 경우 0, 아닐 경우 1을 반환한다.
+    \item \mintinline[breaklines]{c}{void BlockDown(int sig)}
+    블럭이 일정 시간마다 내려갈 수 있도록 한다.
+    \item \mintinline[breaklines]{c}{int CheckToMove(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate, int blockY, int blockX)}
+    주어진 위치에 블록을 놓을 수 있는지 확인한다.
+    \item \mintinline[breaklines]{c}{int GhostY(int y, int x, int blockID, int blockRotate)}
+    주어진 위치에서 그림자의 $y$좌표를 계산한다.
+    \item \mintinline[breaklines]{c}{void DrawChange(char f[HEIGHT][WIDTH], int command, int currentBlock, int blockRotate, int blockY, int blockX)}
+    필드에서 바뀐 부분을 화면에 업데이트한다.
+    \item \mintinline[breaklines]{c}{void DrawField()}
+    필드에 존재하는 셀들을 그린다.
+    \item \mintinline[breaklines]{c}{int AddBlockToField(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate, int blockY, int blockX)}
+    필드의 특정 위치에 블록을 고정시킨다. 인접한 칸 수에 비례해 계산된 점수를 반환한다.
+    \item \mintinline[breaklines]{c}{int DeleteLine(char f[HEIGHT][WIDTH])}
+    필드에서 완성된 줄이 있으면 지우고 점수를 계산해 반환한다.
+    \item \mintinline[breaklines]{c}{void gotoyx(int y, int x)}
+    ncurses의 커서 위치를 $\left(y,\,x\right)$로 옮긴다.
+    \item \mintinline[breaklines]{c}{void DrawNextBlock(int *nextBlock)}
+    화면 우상단에 다음에 나올 블록을 그린다.
+    \item \mintinline[breaklines]{c}{void PrintScore(int score)}
+    화면 우단에 현재 점수를 출력한다.
+    \item \mintinline[breaklines]{c}{void DrawBox(int y, int x, int height, int width)}
+    화면에 원하는 크기의 직사각형을 그린다.
+    \item \mintinline[breaklines]{c}{void DrawBlock(int y, int x, int blockID, int blockRotate, char tile, int isShadow)}
+    필드의 특정 좌표에 특정 블록을 그린다.
+    \item \mintinline[breaklines]{c}{void DrawShadow(int y, int x, int blockID, int blockRotate)}
+    필드에 블록의 그림자를 그린다.
+    \item \mintinline[breaklines]{c}{void DrawRecommend(int y, int x, int blockID, int blockRotate)}
+    필드에 블록의 추천 위치를 그린다.
+    \item \mintinline[breaklines]{c}{void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate)}
+    필드에 블록, 블록의 그림자, 블록의 추천 위치를 그린다.
+    \item \mintinline[breaklines]{c}{void play()}
+    테트리스 게임을 시작한다.
+    \item \mintinline[breaklines]{c}{char menu()}
+    메뉴를 출력하고, 사용자가 입력한 메뉴 번호를 반환한다.
+    \item \mintinline[breaklines]{c}{void createRankList()}
+    랭킹 정보를 파일로부터 읽어 메모리에 저장한다.
+    \item \mintinline[breaklines]{c}{rank()}
+    랭킹 기록들을 출력한다.
+    \item \mintinline[breaklines]{c}{void writeRankFile()}
+    메모리의 랭킹 기록을 파일에 저장한다.
+    \item \mintinline[breaklines]{c}{void newRank(int score)}
+    새로운 랭킹 정보를 추가한다.
+    \item \mintinline[breaklines]{c}{score_pair boardScore(char f[HEIGHT][WIDTH], int nextBlock, int rot, int y, int x)}
+    필드의 점수를 계산한다.
+    \item \mintinline[breaklines]{c}{decision_tree_node recommend_bfs(int level, decision_tree_node *parents, int parent_count)}
+    블록의 최적 추천 위치를 찾기 위해 너비 우선 탐색을 수행한다.
+    \item \mintinline[breaklines]{c}{int recommend(decision_tree_node root)}
+    현재 블록의 위치를 추천한다.
+    \item \mintinline[breaklines]{c}{void recommendedPlay()}
+    추천 기능에 따라 블록을 자동으로 배치하는 게임을 시작한다.
+\end{itemize}
+
+ordered_list.c에는 다음과 같은 구조체와 메서드들이 있다.
+
+\begin{itemize}
+    \item \mintinline[breaklines]{c}{enum __node_color}
+    RB 트리에서 노드의 색상을 나타내는 enumerable이다.
+    \item \mintinline[breaklines]{c}{struct __bst_node}
+    트리의 노드 정보를 담고 있는 구조체이다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{int score} 점수를 저장한다.
+        \item \mintinline[breaklines]{c}{int order} 순번을 저장한다. 순위가 아니고, 같은 점수가 저장될 경우 먼저 저장된 점수가 더 높은 순위를 차지하도록 둔 장치이다.
+        \item \mintinline[breaklines]{c}{char *name} 이름을 저장한다.
+        \item \mintinline[breaklines]{c}{int size} 현재 노드의 서브트리의 크기를 저장한다.
+        \item \mintinline[breaklines]{c}{enum __node_color color} 현재 노드의 색상을 저장한다.
+        \item \mintinline[breaklines]{c}{struct __bst_node *parent} 현재 노드의 부모 노드의 참조를 저장한다.
+        \item \mintinline[breaklines]{c}{struct __bst_node *left} 현재 노드의 왼쪽 자식 노드의 참조를 저장한다.
+        \item \mintinline[breaklines]{c}{struct __bst_node *right} 현재 노드의 오른쪽 자식 노드의 참조를 저장한다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{struct __bst}
+    트리의 정보를 담고 있는 구조체이다.
+    \item \mintinline[breaklines]{c}{ordered_list newList()}
+    새 정렬 리스트를 만든다.
+    \item \mintinline[breaklines]{c}{int freeList(ordered_list list)}
+    정렬 리스트를 메모리에서 해제한다.
+    \item \mintinline[breaklines]{c}{ordered_list_node newEntry(int score, char *name)}
+    해당하는 점수와 이름을 갖는 새 노드를 만든다.
+    \item \mintinline[breaklines]{c}{int orderedList_Insert(ordered_list list, ordered_list_node u)}
+    정렬 리스트에 새 원소를 삽입한다.
+    \item \mintinline[breaklines]{c}{int orderedList_Delete(ordered_list list, int r)}
+    정렬 리스트의 $r$번째 원소를 삭제한다.
+    \item \mintinline[breaklines]{c}{ordered_list_node *orderedList_Query(ordered_list list, int l, int r)}
+    정렬 리스트의 $l$부터 $r$번째까지의 원소를 쿼리한다.
+    \item \mintinline[breaklines]{c}{int orderedList_indexOf(ordered_list list, ordered_list_node x)}
+    정렬 리스트의 특정 원소의 인덱스를 계산한다.
+    \item \mintinline[breaklines]{c}{ordered_list_node orderedList_GetAt(ordered_list_node u, int i)}
+    정렬 리스트의 특정 인덱스의 원소를 가져온다.
+\end{itemize}
+
+또한 자료구조 구현을 위한 다음과 같은 \texttt{static} 메서드들이 있다. 이들은 ordered_list.h에 정의되어 있지는 않다.
+
+\begin{itemize}
+    \item \mintinline[breaklines]{c}{static int __bst_leftRotate(ordered_list list, ordered_list_node x)}
+    \item \mintinline[breaklines]{c}{static int __bst_rightRotate(ordered_list list, ordered_list_node x)}
+    \item \mintinline[breaklines]{c}{static int __bst_transplant(ordered_list list, ordered_list_node u, ordered_list_node v)}
+    \item \mintinline[breaklines]{c}{static int __bst_insertRevalidate(ordered_list list, ordered_list_node u)}
+    \item \mintinline[breaklines]{c}{static int __bst_removeRevalidate(ordered_list list, ordered_list_node x)}
+    \item \mintinline[breaklines]{c}{static int __bst_freeNode(ordered_list_node t)}
+    \item \mintinline[breaklines]{c}{static int __bst_freeSublist(ordered_list_node x, ordered_list_node null)}
+    \item \mintinline[breaklines]{c}{static int __bst_nodeCompare(ordered_list_node a, ordered_list_node b)}
+\end{itemize}
+
+decision_tree.c에는 다음과 같은 구조체와 메서드들이 있다.
+
+\begin{itemize}
+    \item \mintinline[breaklines]{c}{typedef struct score_pair}
+    점수를 저장하는 2-tuple이다. 점수가 2-tuple로 관리되어야 하는 이유는 변수명에서 추측할 수 있으나, 정확한 이유는 후술한다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{long double boardScore} 현재 필드 상태의 점수를 저장한다.
+        \item \mintinline[breaklines]{c}{long double propagatedScore} 현재 수행한 동작에 대한 점수를 저장한다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{struct __decision_tree_node}
+    트리의 노드 정보를 담고 있는 구조체이다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{score_pair score} 현재 노드의 점수이다.
+        \item \mintinline[breaklines]{c}{char field[22][10]} 현재 노드의 필드 상태이다.
+        \item \mintinline[breaklines]{c}{struct __decision_tree_node *parent} 현재 노드의 부모 노드의 참조를 저장한다.
+        \item \mintinline[breaklines]{c}{struct __decision_tree_node **children} 현재 노드의 자식 노드들의 참조를 동적 배열로 저장한다.
+        \item \mintinline[breaklines]{c}{int children_size} 현재 노드의 자식 노드들의 수를 저장한다.
+        \item \mintinline[breaklines]{c}{int curBlockID} 현재 노드의 블록 ID를 저장한다.
+        \item \mintinline[breaklines]{c}{int recBlockX} 현재 노드의 블록의 $x$ 좌표를 저장한다.
+        \item \mintinline[breaklines]{c}{int recBlockY} 현재 노드의 블록의 $y$ 좌표를 저장한다.
+        \item \mintinline[breaklines]{c}{int recBlockRotate} 현재 노드의 블록의 회전 상태를 저장한다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{decision_tree_node decision_tree_create()}
+    새 결정 트리를 만든다.
+    \item \mintinline[breaklines]{c}{void decision_tree_destroy(decision_tree_node root)}
+    결정 트리를 메모리에서 해제한다.
+    \item \mintinline[breaklines]{c}{void decision_tree_add_child(decision_tree_node node, decision_tree_node child)}
+    결정 트리의 한 노드에 자식 노드를 추가한다.
+    \item \mintinline[breaklines]{c}{void decision_tree_swap(decision_tree_node *a, decision_tree_node *b)}
+    두 결정 트리의 노드의 값을 바꾼다.
+    \item \mintinline[breaklines]{c}{void decision_tree_node_quicksort(decision_tree_node *array, int start, int end)}
+    결정 트리 노드 배열을 정렬한다.
+    \item \mintinline[breaklines]{c}{long long decision_tree_size(decision_tree_node root)}
+    결정 트리가 메모리에서 차지하는 바이트 수를 계산한다.
+\end{itemize}
+
+queue.c에는 다음과 같은 구조체와 메서드들이 있다.
+
+\begin{itemize}
+    \item \mintinline[breaklines]{c}{typedef struct triple}
+    세 정수를 저장하는 3-tuple이다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{int first} 1번째 정수이다.
+        \item \mintinline[breaklines]{c}{int second} 2번째 정수이다.
+        \item \mintinline[breaklines]{c}{int third} 3번째 정수이다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{struct __queue_node}
+    큐를 구성하는 노드의 구조체이다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{triple value} 현재 노드의 값을 저장한다.
+        \item \mintinline[breaklines]{c}{struct __queue_node *next} 다음 노드의 참조를 저장한다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{struct __queue}
+    큐의 구조체이다.
+    \begin{itemize}
+        \item \mintinline[breaklines]{c}{queue_node front} 큐의 맨 앞의 노드의 참조를 저장한다.
+        \item \mintinline[breaklines]{c}{queue_node rear} 큐의 맨 뒤의 노드의 참조를 저장한다.
+    \end{itemize}
+    \item \mintinline[breaklines]{c}{queue queue_create()}
+    새 큐를 만든다.
+    \item \mintinline[breaklines]{c}{void queue_destroy(queue q)}
+    큐를 메모리에서 해제한다.
+    \item \mintinline[breaklines]{c}{void queue_emplace(queue q, triple value)}
+    큐에 새로운 값을 추가한다.
+    \item \mintinline[breaklines]{c}{triple queue_front(queue q)}
+    큐의 맨 앞의 값을 가져온다.
+    \item \mintinline[breaklines]{c}{void queue_pop(queue q)}
+    큐의 맨 앞의 값을 뺀다.
+\end{itemize}
+
+\subsubsection{테트리스 게임 클라이언트 1주차} 1주차에 구현된 함수들은 다음과 같다.
+
+\mintinline[breaklines]{c}{int CheckToMove(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate, int blockY, int blockX)}
+: 주어진 위치에 블록을 놓을 수 있는지 확인한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=395,lastline=410]{c}{inc-sources/tetris.c}
+
+\mintinline[breaklines]{c}{void DrawChange(char f[HEIGHT][WIDTH], int command, int currentBlock, int blockRotate, int blockY, int blockX)}
+: 필드에서 바뀐 부분을 화면에 업데이트한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=418,lastline=422]{c}{inc-sources/tetris.c}
+
+\mintinline[breaklines]{c}{void BlockDown(int sig)}
+: 블럭이 일정 시간마다 내려갈 수 있도록 한다. 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=424,lastline=502]{c}{inc-sources/tetris.c}
+
+3주차의 자동 플레이에 대응하기 위해 \texttt{flag_autoplay}가 설정되어 있을 경우 현재 블록을 무조건 추천 블록 위치에 가져다 놓는 루틴이 추가되어 있다(줄 425--429).
+또한 추천 알고리즘을 강도 있게 훈련하기 위해 디버그 옵션 \texttt{DEBUG_GARBAGE_MODE}이 설정되어 있으면 매 15개의 블록을 떨어뜨릴 때마다
+한 칸만 비어 있는 쓰레기 열을 밑에서 추가하도록 수정하였다(줄 443--457). 
+
+다음 블록의 개수가 2개 이상으로 설정되어 있더라도 그만큼 새로운 블록을 생성하도록 수정되었으며(줄 459--462), 현재 블록이 고정되는 순간 다음 블록에 대한
+추천 위치를 계산하도록 수정하였다(줄 470--471). 마지막으로 전술한 바와 같이 테트리스 추천 알고리즘의 목표는 4라인 클리어를 최대화하는 것이므로,
+이를 현재 추천 알고리즘이 잘 수행하고 있는지 확인하기 위해 \texttt{DEBUG}가 설정되어 있으면 현재 게임에 대해 각 라인 클리어 별 빈도 수를
+확인할 수 있는 통계를 표시하는 기능을 추가하였다(줄 476--501).
+
+\mintinline[breaklines]{c}{int AddBlockToField(char f[HEIGHT][WIDTH], int currentBlock, int blockRotate, int blockY, int blockX)}
+: 필드의 특정 위치에 블록을 고정시킨다. 인접한 칸 수에 비례해 계산된 점수를 반환한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=504,lastline=526]{c}{inc-sources/tetris.c}
+
+\mintinline[breaklines]{c}{int DeleteLine(char f[HEIGHT][WIDTH])}
+: 필드에서 완성된 줄이 있으면 지우고 점수를 계산해 반환한다. 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=528,lastline=558]{c}{inc-sources/tetris.c}
+
+\texttt{DEBUG}가 설정되어 있으면 지워진 줄 수에 대한 통계를 계산하기 위해 통계 값을 증가시키는 코드가 추가되었다(줄 550--555).
+
+\mintinline[breaklines]{c}{int GhostY(int y, int x, int blockID, int blockRotate)}
+: 주어진 위치에서 그림자의 $y$좌표를 계산한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=412,lastline=416]{c}{inc-sources/tetris.c}
+
+\subsubsection{테트리스 게임 클라이언트 2주차} 2주차에 구현된 함수들은 다음과 같다.
+
+\mintinline[breaklines]{c}{static int __bst_leftRotate(ordered_list list, ordered_list_node x)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=209,lastline=234]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{static int __bst_rightRotate(ordered_list list, ordered_list_node x)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=236,lastline=262]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{static int __bst_transplant(ordered_list list, ordered_list_node u, ordered_list_node v)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=264,lastline=274]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{ordered_list_node orderedList_GetAt(ordered_list_node u, int i)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=199,lastline=207]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{ordered_list_node orderedList_GetAt(ordered_list_node u, int i)}
+: 정렬 리스트의 특정 인덱스의 원소를 가져온다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=199,lastline=207]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{int orderedList_Insert(ordered_list list, ordered_list_node u)}
+: 정렬 리스트에 새 원소를 삽입한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=60,lastline=92]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{static int __bst_insertRevalidate(ordered_list list, ordered_list_node u)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=276,lastline=316]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{int orderedList_Delete(ordered_list list, ordered_list_node u)}
+: 정렬 리스트의 $r$번째 원소를 삭제한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=94,lastline=145]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{static int __bst_removeRevalidate(ordered_list list, ordered_list_node u)}
+: 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=318,lastline=371]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{ordered_list_node *orderedList_Query(ordered_list list, int l, int r)}
+: 정렬 리스트의 $l$부터 $r$번째까지의 원소를 쿼리한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=147,lastline=179]{c}{inc-sources/ordered-list.c}
+
+\mintinline[breaklines]{c}{int orderedList_indexOf(ordered_list list, ordered_list_node x)}
+: 정렬 리스트의 특정 원소의 인덱스를 계산한다. 정렬 리스트의 $l$부터 $r$번째까지의 원소를 쿼리한다. 구현된 코드는 설계한 의사 코드와 차이가 없었으며, 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=181,lastline=197]{c}{inc-sources/ordered-list.c}
+
+이름으로 쿼리하는 부분은 따로 함수가 만들어지지 않았고, tetris.c의 줄 650--672에 구현되었다. 아래는 그 구현이다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=650,lastline=672]{c}{inc-sources/tetris.c}
+
+알고리즘은 의사 코드와 같으나, \texttt{flag}를 플래그로 활용하여 검색한 결과가 없을 경우 검색 실패 메시지를 표시한다.
+
+\subsubsection{테트리스 게임 클라이언트 3주차} 3주차에 구현된 함수들은 다음과 같다.
+
+\mintinline[breaklines]{c}{void decision_tree_node_quicksort(decision_tree_node *array, int start, int end)}
+: 결정 트리 노드 배열을 정렬한다. 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=32,lastline=51]{c}{inc-sources/decision-tree.c}
+
+점수를 2-tuple로 관리하면서, 점수 비교를 위해 tuple의 두 값을 더해 비교하는 점이 이론과 달라졌다(줄 39--40, 43--44).
+
+가능한 위치들을 찾는 함수는 따로 구현되지 않았고, tetris.c의 줄 17--19와 951--1010에 구현되었다. 아래는 그 구현이다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=17,lastline=19]{c}{inc-sources/tetris.c}
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=951,lastline=1010]{c}{inc-sources/tetris.c}
+
+\begin{wrapfigure}{l}{0.3\textwidth}
+\OMINO{%
+...........\\%
+...........\\%
++---+.+-+..\\%
+|X.X|.|T|..\\%
+|...+-+.+-+\\%
+|X.X|T.T|X|\\%
+|.+-+-+.+.+\\%
+|X|...|T|X|\\%
++-+...+-+-+\\%
+}
+\caption{회전 불가능한 T}
+\label{fig:impossible}
+\end{wrapfigure}
+
+이론을 구체화해 $visit$ 여부를 체크하는 3차원 배열을 만들어 방문 여부를 체크할 수 있도록 했다. $visit$을 새로 만드는 것은 시간이 걸릴 것으로 예상해,
+전역 변수로 두고 새로 탐색할 필요가 있을 때마다 \texttt{memset}으로 초기화하였다. 인접한 칸을 체크하는 부분은 \texttt{dx}, \texttt{dy} 배열을
+만들어 \texttt{for} 루프로 쉽게 체크할 수 있도록 하였다.
+
+이론에서 틀린 부분이 있었는데, Figure \ref{fig:impossible}의 경우 T 블록을 회전해 왼쪽 안으로 밀어넣는 것이 불가능하다. 이론에서는
+이동과 회전을 동시에 고려해, 이런 상태에서 T 블록을 회전해 왼쪽 안으로 밀어넣는 수를 추천하는 상황이 발생했다. 이 오류는 이동과 회전을 따로 생각하게
+코드를 수정하면서 해결되었다(줄 971--1009).
+
+또한 회전 시 블록이 놓일 수 있는 위치를 판별하는 로직을 변경하였다(줄 1004--1008). 만약 회전을 했는데 필드에 놓일 수 없다면 회전된 상태는 판별하지
+않는 것이 바람직하다.
+
+이외에도 3-tuple을 사용하는 등 자료구조 상의 약간의 구체화가 있었으나 알고리즘 자체는 설계한 의사 코드에서 크게 변하지 않았다.
+
+\mintinline[breaklines]{c}{decision_tree_node recommend_bfs(int level, decision_tree_node *parents, int parent_count)}
+: 블록의 최적 추천 위치를 찾기 위해 너비 우선 탐색을 수행한다. 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=916,lastline=953,breaklines]{c}{inc-sources/tetris.c}
+(줄 954--1011: 가능한 위치를 찾기 위해 BFS를 수행하는 코드)
+\inputminted[xleftmargin=\parindent,linenos,firstline=1012,lastline=1057,breaklines]{c}{inc-sources/tetris.c}
+
+대부분이 의사 코드 그대로 구현되었으나, 구체화된 점들이 존재한다.
+
+\texttt{max_score}는 $\infty$가 아닌, 임의의 큰 수 987654321로 정의되었다. \texttt{childs}는 동적 배열로 정의되었다.
+가능한 위치들을 찾는 함수는 구현하는 대신 \texttt{recommend_bfs} 함수 내부에 코드로 포함되었다. 또한 필드 점수가 2-tuple 구조를 사용하도록 하였는데,
+\texttt{boardScore}와 \texttt{propagatedScore}를 따로 두어 \texttt{boardScore}의 경우 현재 노드에만 반영하지만
+\texttt{propagatedScore}의 경우 자식 노드에 누적되도록 하였다. 이유는 후술한다.
+
+\mintinline[breaklines]{c}{score_pair boardScore(char f[HEIGHT][WIDTH], int nextBlock, int rot, int blockY, int blockX)}
+: 필드의 점수를 계산한다. 실제 구현은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=772,lastline=914,breaklines]{c}{inc-sources/tetris.c}
+
+여기에서 가장 중요한 부분은 \texttt{boardScore}와 \texttt{propagatedScore}가 따로 계산된다는 점인데, \texttt{boardScore}는 현재 보드
+상황에 매긴 점수인 반면 \texttt{propagatedScore}는 현재 동작에 매긴 점수이다.
+
+만약 다음 블록 3개의 조합이 차례로 3줄, 4줄, 1줄을 지울 수 있는 경우와 차례로 1줄, 1줄, 2줄을 지울 수 있는 경우가 있다고 생각하자.
+현재 동작에 대한 점수가 누적되지 않는다면 추천 알고리즘은 최종 노드에서 할 수 있는 최선의 선택인 차례로 1줄, 1줄, 2줄을 지우는 경우를 택할 것이다.
+하지만 차례로 3줄, 4줄, 1줄을 지우는 경우가 더 효율적이다. 이런 상황을 방지하기 위해 누적되는 점수의 개념을 따로 도입했다.
+
+이외의 항목들은 의사 코드와 거의 비슷하게 구현되었다. 많은 휴리스틱에서 등장하는 비슷한 루프를 한 루프로 묶은 구현 상의 차이가 있다(줄 832--866).
+
+마지막으로 이 프로젝트를 빌드하는 데 사용한 makefile은 다음과 같다.
+
+\inputminted[xleftmargin=\parindent,linenos,breaklines]{makefile}{inc-sources/makefile}

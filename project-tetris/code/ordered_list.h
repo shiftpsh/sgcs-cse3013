@@ -3,39 +3,43 @@
 
 enum __node_color { RED, BLACK, NULL_COLOR };
 
-typedef struct __node {
+struct __bst_node {
     int score;
     int order;
     char *name;
 
     int size;
     enum __node_color color;
-    struct __node *parent;
-    struct __node *left;
-    struct __node *right;
-} node;
+    struct __bst_node *parent;
+    struct __bst_node *left;
+    struct __bst_node *right;
+};
 
-typedef struct __bst {
-    node *root;
+typedef struct __bst_node* ordered_list_node;
+
+struct __bst {
+    ordered_list_node root;
     int size;
     unsigned int total_order;
-    node null_node;
-} ordered_list;
+    struct __bst_node null_node;
+};
 
-ordered_list *newList();
+typedef struct __bst* ordered_list;
 
-int freeList(ordered_list *list);
+ordered_list newList();
 
-node *newEntry(int score, char *name);
+int freeList(ordered_list list);
 
-int orderedList_Insert(ordered_list *list, node *u);
+ordered_list_node newEntry(int score, char *name);
 
-int orderedList_Delete(ordered_list *list, int r);
+int orderedList_Insert(ordered_list list, ordered_list_node u);
 
-node **orderedList_Query(ordered_list *list, int l, int r);
+int orderedList_Delete(ordered_list list, int r);
 
-int orderedList_indexOf(ordered_list *list, node *x);
+ordered_list_node *orderedList_Query(ordered_list list, int l, int r);
 
-node *orderedList_GetAt(node *u, int i);
+int orderedList_indexOf(ordered_list list, ordered_list_node x);
+
+ordered_list_node orderedList_GetAt(ordered_list_node u, int i);
 
 #endif // __ORDERED_LIST_H__

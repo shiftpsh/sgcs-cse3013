@@ -1,0 +1,163 @@
+\input{../../../header}
+
+\usepackage{color}
+\usepackage{pgfplots}
+
+\newdimen\omsq     \omsq=20pt
+\newdimen\omrule   \omrule=2pt
+\newdimen\omint
+
+\newif\ifvth    \newif\ifhth    \newif\ifomblank
+\def\OMINO#1{%
+    \vthtrue \hthtrue
+    \vbox{ \offinterlineskip\parindent=0pt \OM#1\relax\vskip1pt}
+    }
+
+\def\OM#1{%
+    \omint=\omsq    \advance\omint-\omrule
+    \ifx\relax#1%
+    \else
+      \ifx\\#1 \newline\null \hthtrue \ifvth\vthfalse\else\vskip-\omrule\vthtrue\fi
+      \else%
+        \ifx .#1\hskip\ifhth \omrule\else \omint\fi
+        \else%
+          \ifx +#1\def\colour{black}\fi%
+          \ifx -#1\def\colour{black}\fi%
+          \ifx |#1\def\colour{black}\fi%
+          \ifx @#1\def\colour{black}\fi%
+          \ifx X#1\def\colour{gray}\fi%
+          \ifx Z#1\def\colour{red}\fi%
+          \ifx S#1\def\colour{green}\fi%
+          \ifx L#1\def\colour{orange}\fi%
+          \ifx J#1\def\colour{blue}\fi%
+          \ifx O#1\def\colour{yellow}\fi%
+          \ifx T#1\def\colour{magenta}\fi%
+          \ifx I#1\def\colour{cyan}\fi%
+          \textcolor{\colour}{\rule{\ifhth\omrule\else\omsq\fi}{\ifvth\omrule\else\omsq\fi}}%
+          \ifhth\else\hskip -\omrule\fi%
+        \fi%
+        \ifhth\hthfalse\else\hthtrue\fi%
+      \fi%
+    \expandafter\OM%
+    \fi}
+
+\makeatother
+
+\usepackage{wrapfig}
+\usepackage{subfig}
+
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline 테트리스 프로젝트}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{제 2분반; 담당교수: 서강대학교 컴퓨터공학과 장형수}
+\maketitle
+
+\section{설계 문제 및 목표}
+ncurses 라이브러리가 제공하는 리눅스 터미널 상에서의 GUI를 이용하여 테트리스 게임 프로그램을 제작하고 여기에 랭킹 시스템과 블록 배치 추천 기능을 추가 구현한다.
+테트리스 게임은, 블록을 90도씩 반시계 방향으로 회전하거나 세 방향(좌, 우, 하)으로 움직여 필드에 쌓으면, 빈틈없이 채워진 줄은 지워지고 그에 따른 스코어를 얻어 결과적으로 가장 높은 최종 스코어를 얻는 것이 목적이다. 
+
+프로그램을 실행하면 사용자는 메뉴를 선택할 수 있다. 1번을 선택하면 테트리스 게임을 플레이할 수 있고, 2번을 선택하면 랭킹 정보를 확인할 수 있고, 3번을 선택하면 블록 배치 추천 기능을 따라 플레이되는 모드로 테트리스 게임이 실행되고, 마지막으로 4번을 선택하면 프로그램이 종료된다.
+% 이 내용까지는 그대로 두고 1주차, 2주차, 3주차에는 어떤 것을 해야 되는 지 기술 할 것.
+
+구현 1주차에는 기본적인 게임의 로직을 구현한다. 구현 2주차에는 게임에 랭킹 시스템을 추가한다. 구현 3주차에는 블록을 놓는 위치를 컴퓨터가 추천해 주는 추천 시스템을 제작하며, 이를 통해 자동 플레이를 구현한다.
+\newpage
+
+\section{요구사항}
+\subsection{설계 목표 설정}
+% 테트리스 게임 프로그램의 설계하는 과정에서의 목표를 설정하고, 그 과정에서 요구되는 사항들을 정리한다.(1번에서 나왔던 목표에서 요구되는 사항을 표나 그래프로 정리하면 좋음)
+\import{inc-sections/}{2-1.tex}
+
+\subsection{합성}
+% 테트리스 게임 프로그램의 설계 및 구현을 위해 요구되는 이론, 자료구조, 알고리즘 등을 조사 분석하여 전체적인 설계를 수행한다.(2.1의 요구사항을 해결하기 위한 효율적인 알고리즘 및 자료구조를 구상하여 기술할 것.)
+\import{inc-sections/}{2-2.tex}
+
+\newpage
+\subsection{분석}
+% 테트리스 프로젝트의 각 주차별 문제에 대해 기술하고, 상기 단계에서 설계한 알고리즘에 기반을 두어 목표로 하는 프로그램을 효과적으로 개발하는데 필요한 프로그램 기법들과 자료구조에 대하여 조사 분석하여
+% 그것을 바탕으로 전체 프로그램 순서도를 작성한다. 또한 이러한 프로그램을 개발하는데 있어 고려해야할 모든 요소, 예를 들어, 입출력 양식, 관련 자료구조와 이론, 사용할 C언어 함수의 사용법 등
+% 모든 가능한 고려 사항을 정리한다.
+\import{inc-sections/}{2-3-week1.tex}
+\import{inc-sections/}{2-3-week2.tex}
+\import{inc-sections/}{2-3-week3.tex}
+
+\subsection{제작}
+% 위에서 설계한 내용을 C언어를 사용해 구현한다. 구현 후 프로그램의 각 구성요소를 상세히 분석하여 구현방법을 프로그램 기법과 정리한 이론 등과 연관 지어 정리한다.(이론과 실제 구현간의 차이를 기술할 것!)
+
+% For some reasons, my minted doesn't recognize files with its filename containing '_'.
+\import{inc-sections/}{2-4.tex}
+\import{inc-sections/}{2-4-java.tex}
+
+\subsection{시험}
+% 위의 과정에서 수행한 문제 정의, 프로그램 순서도와 순서도 상의 각 부분 역할 및 구현 방법, 프로그램의 구현 방법, 구현 방법의 이론과의 연관성, 구현한 프로그램의 내용, 수행화면 등을 정리한다.
+\import{inc-sections/}{2-5.tex}
+
+\subsection{평가}
+% 문제와 이론의 연관성이 적절한지, 순서도와 실제 구현 사이에 차이는 없는지, 프로그램은 잘 동작하는지 등을 평가한다. 
+\import{inc-sections/}{2-6.tex}
+
+\subsection{환경}
+학생들이 리눅스 서버를 접속하여 프로젝트를 진행하므로 해당 서버에 접속할 수 있는 데스크탑과 ssh 접속 프로그램을 제공한다. 접속하는 리눅스 서버에 각 학생들에게 하위 계정을 발급하여 할당받는 용량에 한하여 자유롭게 이를 이용하여 프로젝트를 진행할 수 있는 환경을 제공한다.
+% (이 내용은 그대로 둘 것)
+
+\subsection{미학}
+% 테트리스 게임에 새 기능이 추가되거나 프로그램이 수정되어도, 최초로 주어지는 테트리스 게임 프로그램의 모양이 일관성 있게 유지되도록 확장되어야 한다.
+% 또한 각 주차별 내용에서 제시하는 기능에 따른 프로그램의 모양 변화를 잘 따라야 한다.(이는 매주차마다 추가된 기능과 종전의 인터페이스가 얼마나 일관성 있는지 기술할 것.)
+블록의 각 칸이 모양에 따라 색칠되도록 프로그램이 확장되었다.
+이외의 부분에 대해서는 매 주차 구현은 기존 인터페이스를 최대한 유지하도록 개발되었다.
+
+\subsection{보건 및 안정}
+% 프로젝트에서 정의하고 있지 않은 입력으로 인한 프로그램의 오동작이 없어야 한다. 또한 프로그램 동작 중에 일어날 수 있는 오류에 대처할 수 있어야 한다.
+% (오동작이 일어날 수 없는 이유, 일어날 수 있는 오류 상황 등을 정리하여 기술할 것.)
+게임플레이 중, 명령어와 관련되지 않은 키는 전부 무시하므로 이론적으로는 오동작이 생길 수 없다.
+또한 자동 플레이 중에는 플레이어의 모든 명령을 무시하므로 오동작이 생길 수 없다.
+
+랭킹 파일을 사용자가 임의로 수정할 경우 오동작이 일어날 수 있다.
+
+\section{기타}
+\subsection{환경 구성}
+% 실제 프로젝트를 수행한 환경에 대해 구체적으로 기술한다. 프로젝트 수행에 사용된 하드웨어 및 소프트웨어의 상세 정보를 정리한다.
+% (ncurses library, vi, gcc, gdb 등에 대해서 기술할 것. 특히 ncurses library에 대하여 되도록 자세히 기술할 것.)
+\import{inc-sections/}{3-1.tex}
+
+\subsection{참고 사항}
+% 프로젝트의 수행 시 참고 사항에 대해서 기술한다.(참고 사항이 없으면 ‘참고사항 없음’, 있다면 그 내용을 적는다.)
+프로그램이 터미널의 색상 모드를 판단하는 과정에서 다음과 같은 터미널에서 정상 작동함을 확인하였다.
+\begin{itemize}
+    \item PuTTY 0.71 x64 on Windows Home 10.0.17763.503: 8색 모드로 정상 작동하였다.
+    \item ssh with git bash 4.4.23(1)-release on Windows Home 10.0.17763.503: 8색 모드로 정상 작동하였다.
+    \item Terminal on macOS 10.14.4 (18E226) with Darwin 18.5.0 kernel: 256색 모드로 정상 작동하였다.
+    \item iTerm2 Build 3.2.8 on macOS 10.14.4 (18E226) with Darwin 18.5.0 kernel: 256색 모드로 정상 작동하였다.
+\end{itemize} 
+
+다음과 같은 터미널에서는 색상이 정상적으로 표시되지 않았다.
+\begin{itemize}
+    \item ssh with bash 4.4.19(1)-release on Ubuntu 18.04.1 LTS, Windows Subsystem for Linux on Windows Home 10.0.17763.503: 색상이 정상적으로 출력되지 않았다.
+\end{itemize}
+  
+이외의 터미널에서는 테스트해 보지 않았으므로 실행에 주의가 필요하다.
+
+\subsection{팀 구성}
+% (팀 구성 관련 사항을 기입. 예: ‘첫 번째 프로젝트 팀 구성을 유지한다. 본 프로젝트에 대한 각 구성원의 기여사항을 보고서에 명시하도록 한다.’
+% 이 프로젝트는 개인 프로젝트이므로 팀 구성이 1명이다. 자신의 이름을 쓰고 100%로 기술하도록 한다.)
+서강대학교 컴퓨터공학과 박수현 (20181634) 100\% 기여. 개인 프로젝트로 진행하였다.
+
+\subsection{수행기간}
+% (테트리스 1주차 실습 수업일부터 제출 마감일까지로 기입)
+2019년 4월 29일부터 2019년 5월 27일까지.
+
+\begin{thebibliography}{1}
+    \bibitem{CLRS} T. H. Cormen, C. E. Leiserson, R. L. Rivest, C. Stein, \textit{Introduction
+    to Algorithms} (3rd ed). Cambridge, MA: The MIT Press, 2009.
+    \bibitem{gccset} ``libstdc++: stl_set.h Source File", gcc.gnu.org. [Online].
+    Available: https://gcc.gnu.org/onlinedocs/gcc-4.6.3/libstdc++/api/a01064_source.html.
+    [Accessed: 25- May- 2019].
+    \bibitem{1981Khachaturyan} A. Khachaturyan, S. Semenovsovskaya and B. Vainshtein,
+    ``The Thermodynamic Approach to the Structure Analysis of Crystals". \textit{Acta Crystallographica}, vol. 37 (A37), pp. 742–754, 1981.
+    \bibitem{CTWC} Classic Tetris, \textit{16 Y/O UNDERDOG vs. 7-TIME CHAMP - Classic Tetris World Championship 2018 Final Round}. youtube.com. [Online].
+    Available: https://www.youtube.com/watch?v=L_UPHsGR6fM. [Accessed: 19- May- 2019].
+    \bibitem{JNI} "Java Native Interface (JNI) - Java Programming Tutorial", www3.ntu.edu.sg,
+    [Online]. Available: https://www3.ntu.edu.sg/home/ehchua/programming/java/JavaNativeInterface.html. [Accessed: 26- May- 2019].
+\end{thebibliography}
+
+\end{document}

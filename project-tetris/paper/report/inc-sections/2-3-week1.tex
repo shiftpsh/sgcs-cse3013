@@ -1,0 +1,155 @@
+\subsubsection{1주차: 블록이 필드의 특정 위치에 놓여질 수 있는지 판단하는 로직} 현재 블록에 대응하는 필드의 모든 칸에 대해,
+하나 이상의 칸이 차 있을 경우 블록은 현재 위치에 놓일 수 없다. 따라서 이를 구현한다. 시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+\begin{codebox}
+\Procname{$\proc{CheckToMove}(f, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$}
+\li \For $i \gets 0$ \To $3$
+\li \Do
+        \For $j \gets 0$ \To $3$
+\li     \Do
+            \If $\id{block}[\id{currentBlock}][\id{blockRotate}][i][j] \isequal 1$
+\li         \Then
+                $x \gets \id{blockX} + j$
+\li             $y \gets \id{blockY} + i$
+\li             \If $\left( 0 \leq x < \id{WIDTH} \mbox{ and } 0 \leq y < \id{HEIGHT} \right) \neq \const{true}$
+\li                 \Then \Return $\const{false}$
+                \End
+\li             \If $f[y][x] \isequal 1$
+\li                 \Then \Return $\const{false}$
+                \End
+            \End
+        \End
+    \End
+\li \Return $\const{true}$
+\end{codebox}
+
+\subsubsection{1주차: 시간이 지남에 따라 블록을 움직이고, 떨어뜨리고, 필드를 업데이트하는 로직} 블록을 떨어뜨리고 필드를 업데이트하는 과정은 다음과 같이 세분화된다.
+\begin{itemize}
+    \item 블록을 움직이거나 떨어뜨릴 수 있는지 확인한다. - \proc{BlockDown}, \proc{CheckToMove}
+    \item 블록을 움직이거나 떨어뜨리는 데 성공했을 경우 필드와 현재 블록을 다시 그린다. - \proc{DrawChange}
+    \item 블록을 더 떨어뜨릴 수 없을 경우 블록을 필드에 고정시킨다. - \proc{AddBlockToField}
+    \item 블록이 새로 고정되었을 경우 필드에서 완성된 줄이 있는지 확인하고 줄을 지운다. - \proc{DeleteLine}
+\end{itemize}
+
+필드와 현재 블록을 다시 그리는 것은 필드를 먼저 그려 이전 블록을 덮어씌우고 난 뒤 현재 블록을 현재 위치에 새로 그리는 것과 같다.
+\proc{DrawField}와 \proc{DrawBlock}의 시간 복잡도가 $\mathcal{O}\left(WIDTH\times HEIGHT\right)$이므로 전체
+시간 복잡도도 $\mathcal{O}\left(WIDTH\times HEIGHT\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{DrawChange}(f, \id{command}, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$}
+\li \Comment Erase current block
+\li $\proc{DrawField}()$
+\li \Comment Draw new block
+\li $\proc{DrawBlock}(blockY, blockX, currentBlock, blockRotate, \mbox{` '})$
+\end{codebox}
+
+블록을 떨어뜨릴 수 있을 경우 떨어뜨리고, 불가능할 경우 블럭을 필드에 고정시킨다. 이 과정에서 새로운 다음 블럭을 만들고 점수도 업데이트한다.
+\proc{CheckToMove}, \proc{DrawChange}, \proc{AddBlockToField}, \proc{DeleteLine}, \proc{DrawNextBlock},
+\proc{DrawField}, \proc{PrintScore}가 호출되는데 이 중 최악의 시간 복잡도를 보이는 메서드는 amortized $\mathcal{O}\left(WIDTH\times HEIGHT^2\right)$의
+시간을 사용하는 \proc{DeleteLine}이므로, 전체 시간 복잡도도 $\mathcal{O}\left(WIDTH\times HEIGHT^2\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{BlockDown}(\id{sig})$}
+\li \If $\proc{CheckToMove}(f, \id{currentBlock}, \id{blockRotate}, \id{blockY} + 1, \id{blockX})$
+\li \Then
+        $\id{blockY} = \id{blockY} + 1$
+\li     $\proc{DrawChange}(f, \id{command}, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$
+\li \Else
+\li     \If $\id{blockY} \isequal 1$
+\li     \Then
+            $\id{gameOver} \gets \const{true}$
+\li     \Else
+\li         $\id{score} \gets \id{score} + \proc{AddBlockToField}(f, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$
+\li         $\id{score} \gets \id{score} + \proc{DeleteLine}(f)$
+\li         \Comment Generate new block
+\li         $\id{nextBlock}[0] \gets \id{nextBlock}[1]$
+\li         $\id{nextBlock}[1] \gets (\mbox{Random integer in 0 .. 6})$
+\li         $\proc{DrawNextBlock}(\id{nextBlock})$
+\li         $\id{blockY} \gets -1$, $\id{blockX} \gets (\mbox{Center of field})$
+\li         $\proc{DrawField}()$
+\li         $\proc{PrintScore}(\id{score})$
+        \End
+    \End
+\end{codebox}
+
+블럭을 필드에 고정시키려면 현재 블록에 대응하는 필드의 모든 칸에 대해 필드를 채워 주면 된다. 여기에서 인접 칸 수에 따른 점수를 계산해 반환한다.
+시간 복잡도는 $\mathcal{O}\left(1\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{AddBlockToField}(f, \id{currentBlock}, \id{blockRotate}, \id{blockY}, \id{blockX})$}
+\li $\id{adjacentCount} \gets 0$
+\li \For $i \gets 0$ \To $3$ \Do
+\li     \For $j \gets 0$ \To $3$ \Do
+\li         \If $\id{block}[\id{currentBlock}][\id{blockRotate}][i][j] \isequal 1$ \Then
+\li             $\id{ny} \gets \id{blockY} + i$
+\li             $\id{nx} \gets \id{blockX} + j$
+\li             \If $0 < \id{ny} \leq \id{HEIGHT}$ and $0 < \id{nx} \leq \id{WIDTH}$ \Then
+\li                 $f[\id{blockY} + i][\id{blockX} + j] \gets 1$
+\li                 \If $\id{ny}\isequal\id{HEIGHT}-1$ or $f[\id{ny} + 1][\id{nx}] \neq 0$ \Then
+\li                     $\id{adjacentCount} \gets \id{adjacentCount} + 1$
+                \End
+            \End
+        \End
+    \End
+\li \Return $\id{adjacentCount} \times 10$
+\end{codebox}
+
+\newpage
+
+꽉 찬 줄이 있는지 체크하고, 있을 경우 줄을 지우고 스코어를 증가시킨다. 완성된 줄은 $y$좌표마다 모든 $x$좌표의 칸이 차 있는가로 검사하며,
+아래 칸부터 위 칸 방향으로 진행하면서 줄이 지워질 경우 위에 있는 칸들을 한 칸씩 아래로 내린다. 여기에서 지워진 줄 수에 따른 점수를 계산해 반환한다.
+모든 $y$좌표마다 $x$좌표를 확인하는 데 $\mathcal{O}\left(WIDTH\times HEIGHT\right)$의 시간이 걸리고 만약 줄이 지워진다면
+위의 블럭을들 아래로 내리는 데 지워진 줄마다 $\mathcal{O}\left(WIDTH\times HEIGHT\right)$의 시간을 추가로 사용하므로
+만약 지워지는 줄 수를 $t$라 하면 루프 횟수는 $\left(WIDTH + t \times WIDTH\times HEIGHT\right)\times HEIGHT=
+WIDTH\times HEIGHT\times\left(1 + t\times HEIGHT\right)$이다.
+
+테트리스 게임의 특성상 블록당 4칸의 공간을 차지하므로 $n$블록이 떨어졌을 때 지워지는 줄 수의 상한은 $2.5n$이다. 따라서 분할상환분석으로 알고리즘을 분석하면
+$\mathcal{T}\left(n\right)=WIDTH\times HEIGHT\times\left(1 + 2.5n \times HEIGHT\right)$이므로 전체 시간 복잡도는
+amortized $\mathcal{O}\left(WIDTH\times HEIGHT^2\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{DeleteLine}(f)$}
+\li $erased \gets 0$
+\li \For $i \gets 0$ \To $\id{HEIGHT} - 1$
+\li \Do
+        $flag \gets \const{true}$
+\li     \For $j \gets 0$ \To $\id{WIDTH} - 1$
+\li     \Do
+            \If $f[i][j] \isequal 0$
+\li         \Then
+                $flag \gets \const{false}$
+            \End
+        \End
+\li     \If $flag \isequal \const{true}$
+            \Then
+\li             $erased \gets erased + 1$
+\li             \For $y \gets i$ \Downto $1$
+\li             \Do
+                    \For $x \gets 0$ \To $\id{WIDTH} - 1$
+\li                 \Do
+                        $f[y][x] \gets f[y - 1][x]$
+                    \End
+                \End
+\li             \For $x \gets 0$ \To $\id{WIDTH} - 1$
+\li             \Do
+                    $f[0][x] \gets 0$
+                \End
+\li             $i \gets i - 1$
+            \End
+        \End
+    \End
+\li \Return $100 \times \id{erased}^2$
+\end{codebox}
+
+\subsubsection{1주차: 현재 블록의 그림자 위치를 계산하고 표시하는 로직} 그림자를 그리기 위해 현재 블록을 얼마만큼 아래로 내릴 수 있는지 \proc{CheckToMove}를 이용해 판정한다.
+시간 복잡도는 $O\left(HEIGHT\right)$이다.
+
+\begin{codebox}
+\Procname{$\proc{GhostY}(y, x, \id{blockID}, \id{blockRotate})$}
+\li \While $\proc{CheckToMove}(\id{field}, \id{nextBlock}[0], \id{blockRotate}, y + 1, x)$
+\li \Do
+        $y \gets y + 1$
+    \End
+\li \Return $y$
+\end{codebox}
+
+\subsubsection{1주차: 점수를 계산하는 로직} \proc{AddBlockToField}과 \proc{DeleteLine}에서 계산된 점수는 \proc{BlockDown}에서 더해진다.
