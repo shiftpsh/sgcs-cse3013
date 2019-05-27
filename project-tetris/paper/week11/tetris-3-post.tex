@@ -1,0 +1,391 @@
+\input{../../../header}
+    
+\usepackage{subfig}
+\usepackage{pgfplots}
+
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline PRJ-1 테트리스 프로젝트 3주차 결과 보고서}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{서강대학교 컴퓨터공학과}
+\maketitle
+
+\section{목적}
+실습 시간에 작성한 알고리즘과 자료구조를 요약해 기술한다. 모든 경우를 고려하는 트리 구조와 가지치기를 한 트리 구조를 비교한다.
+
+\section{추천 알고리즘}
+현재 상태를 루트로 갖는 트리를 만든다. 현재 블록과 다음 블록을 이용해 첫 번째 블록을 놓는 모든 위치와 회전 상태에 대해 자식 노드들을 만든다.
+그 자식 노드들에서 두 번째 블록을 놓는 모든 위치와 회전 상태에 대해 자식 노드를 만든다.
+그리고 트리를 탐색하면서 가장 높은 점수를 도출하는 위치에 다음 블럭을 놓는다.
+
+간단히 말하면, 추천 알고리즘은 가능한 미래의 상태 공간을 결정 트리\translation{decision tree}로 만들어 완전 탐색해 최적의
+위치를 찾아 블록을 놓는다.
+
+추천 위치를 계산하는 로직은 다음과 같이 세분화된다.
+\begin{itemize}
+    \item 결정 트리를 만드는 로직
+    \item 보드 상태 점수를 계산하는 로직
+    \item 결정 트리를 최적화하는 로직
+\end{itemize}
+
+현재 상태를 루트라고 하면, 다음 $n$개 블록에 대한 높이 $n+1$의 결정 트리를 만들 수 있다. 결정 트리의 각 노드에는
+보드 상태와 점수가 포함된다.
+
+공간 복잡도의 개선을 위해 탐색과 가지치기를 진행하면서 결정 트리를 만들어나간다. 가지치기를 하기 위해서는
+노드를 정렬할 필요가 있다. 아래는 $n$개의 노드를 amortized $\mathcal{O}\left(n \log n\right)$의
+시간에 정렬하는 메서드이다. Swap의 의사 코드는 trivial하므로 기술하지 않는다.
+
+\begin{codebox}
+\Procname{$\proc{Quicksort}(\id{array},\,\id{start},\,\id{end})$}
+\li \If $\id{start} \geq \id{end}$ \Then
+\li     \Return
+    \End
+\li \Comment Set pivot to first element
+\li $i \gets \id{start}$, $j \gets \id{end}$, $p \gets \id{start}$
+\li \While $i < j$ \Do
+\li     \While $\id{array}[i] \leq \id{array}[p]$ and $i < \id{end}$ \Do
+\li         $i \gets i + 1$
+        \End
+\li     \While $\id{array}[j] > \id{array}[p]$ \Do
+\li         $j \gets j + 1$
+        \End
+\li     \If $i<j$ \Then
+\li         Swap $\id{array}[i]$ and $\id{array}[j]$
+        \End
+    \End
+\li Swap $\id{array}[p]$ and $\id{array}[j]$
+\li $\proc{Quicksort}(\id{array},\,\id{start},\,\id{j} - 1)$
+\li $\proc{Quicksort}(\id{array},\,\id{j} + 1,\,\id{end})$
+\end{codebox}
+
+결정 트리를 만들 때, 블록을 놓을 수 있는 위치를 모두 계산해야 한다. 단순히 각 $x$좌표마다
+블록이 놓일 수 있는 최대 $y$좌표를 계산하는 것은 블록을 좌우 구멍으로 끼워넣어 효율적인 상황을 만들 수 있음에도 불구하고 끼워넣지 않는
+비효율적인 상황만을 탐색하게 되므로, 이런 상황과 같이 조각을 밀어넣어 필드를 더 효율적으로 만들
+수 있는 경우도 놓치지 않고 탐색하기 위해 BFS를 사용한다.
+
+\begin{codebox}
+\Procname{$\proc{FindAvailableSpots}(\id{field},\,\id{nextBlock})$}
+\li Allocate new queue $q$, $\id{avilable\_spots}$
+\li \For $\id{rot} \gets 0$ \To $4$ \Do
+\li     \For $x \gets -4$ \To $\id{WIDTH} + 4$ \Do
+\li         \If $\proc{CheckToMove}(\id{field}, \id{nextBlock}, \id{rot}, 1, x)) \isequal \const{true}$ \Then
+\li             Emplace $(5, x + 4, \id{rot})$ to $q$
+            \End
+        \End
+    \End
+\li \While $\attrib{q}{size} > 0$ \Do
+\li     $(y + 4,\,x + 4,\,r) \gets \attrib{q}{front}$
+\li     Pop $q$
+\li     \For all neighboring cell $(\id{ny},\,\id{nx})$ to $(y,\,x)$ \Do
+\li         \For current rotation state and next rotation state $\id{nr}$ \Do
+\li             \If state $(\id{ny},\,\id{nx},\,\id{nr})$ not checked \Do
+\li                 \If $\proc{CheckToMove}(\id{field}, \id{nextBlock}, \id{nr}, \id{ny}, \id{nx})) \isequal \const{true}$ \Then
+\li                     \If $\id{ny} \isequal y + 1$ and $\id{nr} \isequal r$ \Do
+\li                         Emplace $(y + 4,\,x + 4,\,r)$ to $\id{avilable\_spots}$
+\li                     \ElseNoIf
+\li                         Emplace $(\id{ny} + 4,\,\id{nx} + 4,\,\id{nr})$ to $q$
+\li                     \End
+                    \End
+                \End
+            \End
+        \End
+    \End
+\li \Return $\id{avilable\_spots}$
+\end{codebox}
+
+위의 메서드는 블록을 필드 또는 바닥에 닿게 하면서 사용자가 키보드를 조작해 블록을 놓을 수 있는 모든
+위치를 BFS로 찾아 준다. 전체 필드 공간을 3-tuple을 이용한 BFS로 탐색하면서
+\proc{CheckToMove}를 호출하므로 시간 복잡도는 $\mathcal{O}\left(WIDTH
+\times HEIGHT\right)$인데, 이는 각 $x$좌표마다 블록이 놓일 수 있는 최대 $y$좌표를 계산하는
+시간 복잡도와 동일하다.
+
+결정 트리를 만드는 것과 최적화하는 것은 동시에 이루어진다. \proc{Recommend-BFS}는 한 레벨의
+노드들의 리스트를 받아 다음 노드들을 만든 후, 정렬하고, 상위 몇 개 노드들을 다시 \proc{Recommend-BFS}로
+보내 주는 재귀적 메서드이다.
+
+이 메서드는 끝 레벨이 아닐 경우 매번 호출될 때마다 \id{nodes}의 크기만큼 \proc{FindAvailableSpots}를 호출하며
+$(\id{nodes} \times \id{children})$의 크기만큼 \proc{Board-Score}를 호출한다. \id{nodes}는 위의 레벨에서 가지치기 상한선 개만큼 들어올 수 있으며
+\proc{FindAvailableSpots}의 공간 복잡도는 $\mathcal{O}\left(WIDTH \times HEIGHT\right)$이므로
+\id{children}의 공간 복잡도도 그러하고, \proc{Board-Score}의 시간 복잡도는 $\mathcal{O}\left(WIDTH \times HEIGHT^2\right)$이므로 
+노드 하나에 대해 \id{childs}를 만드는 시간은 $\mathcal{O}\left(WIDTH^2 \times HEIGHT^3\right)$이다.
+
+한편 가지치기 상한선을 $m$이라 하면, 생길 수 있는 \id{childs}의 개수는 \id{node}마다
+$\mathcal{O}\left(WIDTH \times HEIGHT\right)$개씩이고 이후에
+amortized $\mathcal{O}\left(n \log n\right)$의 시간에 정렬되므로, 이를 수행하는 데 걸리는 시간은
+\[\mathcal{O}\left(m \times WIDTH \times HEIGHT \times \log \left(m \times WIDTH \times HEIGHT\right)\right)\]
+이다. 따라서 이 메서드가 한 번 호출되려면
+\[\mathcal{O}\left(m \times WIDTH^2 \times HEIGHT^3 + m \times WIDTH \times HEIGHT \times \log \left(m \times WIDTH \times HEIGHT\right)\right)\]
+의 시간이 필요하며, 이는 $\mathcal{O}\left(m \times WIDTH^2 \times HEIGHT^3\right)$와 같다.
+
+이 작업을 트리의 높이만큼 재귀적으로 반복하므로 다음 블록의 개수를 $k$라 하면 전체 시간 복잡도는
+\[\mathcal{O}\left(k \times m \times WIDTH^2 \times HEIGHT^3\right)\]
+이다.
+
+\begin{codebox}
+\Procname{$\proc{Recommend-BFS}(\id{level},\,\id{nodes})$}
+\li \If $\id{level} \isequal \mbox{number of future blocks}$ \Then
+\li     $\id{max\_score} \gets -\infty$
+\li     $\id{max\_node} \gets \const{null}$
+\li     \For $\id{node}$ in $\id{nodes}$ \Do
+\li         \If $\id{max\_score} > \attrib{node}{score}$ \Then
+\li             $\id{max\_score} \gets \attrib{node}{score}$
+\li             $\id{max\_node} \gets \id{node}$
+            \End
+        \End
+\li     \If $\id{max\_node} \isequal \const{null}$ \Then
+\li         \Return \const{null}
+        \End
+\li     \While $\attrib{max\_node}{parent} \neq \const{null}$ and $\attribb{max\_node}{parent}{parent} \neq \const{null}$ \Then
+\li         $\id{max\_node} \gets \attrib{max\_node}{parent}$
+        \End
+\li     \Return \id{max\_node}
+    \End
+\li Allocate new list \id{childs}
+\li \For $\id{node}$ in $\id{nodes}$ \Do
+\li     $\id{children} \gets \proc{FindAvailableSpots}(\attrib{node}{field},\,\id{nextBlock}[\id{level}])$
+\li     \While $\attrib{children}{size} > 0$ \Do
+\li         Allocate new node \id{newChild}
+\li         Copy \attrib{node}{field} to \attrib{newChild}{field}
+\li         $\attrib{newChild}{curBlockID} \gets \id{nextBlock}[\id{level}]$
+\li         $(y + 4,\,x + 4,\,r) \gets \attrib{children}{front}$
+\li         $\attrib{newChild}{recBlockX} \gets x$, $\attrib{newChild}{recBlockY} \gets y$, $\attrib{newChild}{recBlockRotate} \gets r$
+\li         Pop \id{children}
+\li         $\id{board\_score} \gets \proc{Board-Score}(\attrib{newChild}{field},\,\id{nextBlock}[\id{level}])$
+\li         $\attrib{newChild}{parent} \gets \id{node}$, $\attrib{newChild}{score} \gets \id{board\_score}$
+\li         Add \id{newChild} to \id{childs}
+        \End
+    \End
+\li $\proc{Quicksort}(\id{childs},\,0,\,\mbox{count of }\id{childs}-1)$
+\li $\id{pruned\_size} \gets \min(\mbox{count of }\id{childs},\,\mbox{tree prune limit})$
+\li Allocate new list \id{pruned}
+\li \For $i \gets 0$ \To \id{pruned\_size} \Do
+\li     Add $\id{childs}[i]$ to \id{pruned}
+    \End
+\li \Return $\proc{Recommend-BFS}(\id{level} + 1,\,\id{pruned})$
+\end{codebox}
+
+\newpage
+
+\section{가지치기의 효율성}
+
+추천 알고리즘의 복잡도와 효율성을 검증하기 위해 다음과 같은 평가를 수행하였다.
+\begin{itemize}
+    \item 다른 조건은 그대로 두고, 미래에 보는 블록 수에 따라 시뮬레이션을 12번 진행해
+    추천 알고리즘의 누적 계산 시간과 누적 사용 공간, 점수의
+    평균과 표준편차를 각각 구한다.
+    \item 위 평가를 트리 가지치기를 하지 않고 진행한다.
+    \item 다른 조건은 그대로 두고, 트리 가지치기 이후에 남기는 노드의 상한에 따라
+    시뮬레이션을 12번 진행해 추천 알고리즘의 누적 계산 시간과 누적 사용 공간, 점수의
+    평균과 표준편차를 각각 구한다.
+\end{itemize}
+단, 프로그램이 쉽게 게임 오버되지 않는 점을 고려해 1,000번째 블록을 떨어뜨리는 시점에서
+강제로 게임이 종료되도록 한다. 또한 1,000번째 블록 이전에서 게임 오버를 당할 경우
+1,000블록 당 시간, 공간, 점수를 계산한다.
+
+1번째 평가의 결과는 다음과 같았다. 남기는 노드의 상한은 모든 경우에서 32였다.
+\begin{center}
+    \begin{tabular}{l|r|r|r|r|r}
+        미래에 보는 블록 수 & 1* & 2 & 3 & 4 & 5 \\
+        \hline
+        점수 평균 & 99,470 & 118,352 & 130,272 & 136,363 & 137,178 \\
+        점수 표준편차 & 11,317 & 8,675 & 7,253 & 5,806 & 7,357 \\
+        \hline
+        누적 계산 시간 평균 (초) & $<0.01$ & 3.80 & 7.26 & 16.71 & 26.04 \\
+        누적 계산 시간 표준편차 (초) & $<0.01$ & 0.14 & 0.25 & 0.43 & 0.80 \\
+        1초당 점수 & $\infty$ & 31,145 & 17,944 & 8,161 & 5,268 \\
+        \hline
+        누적 사용 메모리 평균 (MB) & 7.29 & 168.31 & 397.50 & 630.41 & 856.28 \\
+        누적 사용 메모리 표준편차 (MB) & 0.22 & 3.82 & 4.97 & 12.44 & 12.78 \\
+        1MB당 점수 & 13,645 & 703 & 327 & 216 & 160 \\
+    \end{tabular}
+\end{center}
+* 미래에 1블록만 보는 경우는 평균적으로 456번째 블록이 내려온 직후 게임 오버 당했다.
+나머지 경우에서는 1,000번째 블록이 내려올 때까지 게임 오버를 당하지 않았다.
+
+1초당 점수와 1MB당 점수는 미래에 보는 블록 수가 증가할수록 오히려 감소했지만,
+미래에 1블록만 보는 경우에서 1,000번째 블록이 내려올 때까지 게임 오버를 당하지 않은
+경우가 없었던 것으로 미루어 보아 미래에 많은 블록을 볼수록 안정성이 높아진다고
+추측할 수 있다. 따라서 안정성과 효율의 균형이 잘 맞는 블록 수를 선택해야 할 것이다.
+
+그래프는 다음과 같았다.
+
+\begin{figure}
+    \centering
+    \subfloat[점수 평균]{
+        \begin{tikzpicture}[scale=0.72, domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={점수 평균}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 99470 11317 0 \\
+                2 0 118352 8675 0 \\
+                3 0 130272 7253 0 \\
+                4 0 136363 5806 0 \\
+                5 0 137178 7347 0 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+    \qquad
+    \subfloat[계산 시간 평균]{
+        \begin{tikzpicture}[scale=0.72 ,domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={누적 계산 시간(초)}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 0 0 0 \\
+                2 0 3.80 0.14 0 \\
+                3 0 7.26 0.25 0 \\
+                4 0 16.71 0.43 0 \\
+                5 0 26.04 0.80 0 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+    \qquad
+    \subfloat[사용 메모리 평균]{
+        \begin{tikzpicture}[scale=0.72 ,domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={누적 사용 메모리(MB)}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 7.29 0.22 0 \\
+                2 0 168.31 3.82 0 \\
+                3 0 397.50 4.97 0 \\
+                4 0 630.41 12.44 0 \\
+                5 0 856.28 12.78 0 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+\end{figure}
+
+점수는 미래에 보는 블록 수가 증가할수록 어떤 값에 수렴하는 형태를 보였으며,
+계산 시간은 1--3블록, 3--5블록은 각각 선형의 경향성을 보이고 있다. 3블록을 기점으로
+누적 계산 시간이 꺾였는데, 요인은 잦은 캐시 미스 혹은 소팅 시간의 증가라고 추측된다.
+사용 메모리는 선형의 경향성을 보이고 있다. 이는 가지치기를 했을 때 공간 복잡도가 미래에
+보는 블록의 수에 비례함을 뒷받침한다.
+
+2번째 평가의 결과는 다음과 같았다.
+\begin{center}
+    \begin{tabular}{l|r|r|r|r|r}
+        미래에 보는 블록 수 & 1* & 2 & 3 & 4** & 5** \\
+        \hline
+        점수 평균 & 97,456 & 114,163 & 126,863 & -- & -- \\
+        점수 표준편차 & 15,523 & 5,958 & 5,383 & -- & -- \\
+        \hline
+        누적 계산 시간 평균 (초) & $<0.01$ & 5.33 & 96.78 & -- & -- \\
+        누적 계산 시간 표준편차 (초) & $<0.01$ & 0.22 & 4.36 & -- & -- \\
+        1초당 점수 & $\infty$ & 21,479 & 1,311 & -- & -- \\
+        \hline
+        누적 사용 메모리 평균 (MB) & 7.40 & 176.72 & 4349.17 & -- & -- \\
+        누적 사용 메모리 표준편차 (MB) & 0.17 & 3.52 & 197.27 & -- & -- \\
+        1MB당 점수 & 13,170 & 646 & 29 & -- & -- \\
+    \end{tabular}
+\end{center}
+* 미래에 1블록만 보는 경우는 평균적으로 477번째 블록이 내려온 직후 게임 오버 당했다.
+나머지 경우에서는 1,000번째 블록이 내려올 때까지 게임 오버를 당하지 않았다.
+
+** 미래에 4블록, 5블록을 보는 경우는 1,000번째 블록이 떨어질 때까지의 시간이
+너무 오래 걸려 테스트하지 못했다.
+
+가지치기를 하지 않을 경우 사용하는 시간과 공간이 기하급수적으로 늘어남을 알 수 있다.
+그래프는 다음과 같았다. 붉은색 점은 가지치기를 했을 때의 결과이다.
+
+\newpage
+
+\begin{figure}
+    \centering
+    \subfloat[점수 평균]{
+        \begin{tikzpicture}[scale=0.72 ,domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={점수 평균}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 97456 15523 0 \\
+                2 0 114163 5958 0 \\
+                3 0 126863 5383 0 \\
+            };
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 99470 11317 1 \\
+                2 0 118352 8675 1 \\
+                3 0 130272 7253 1 \\
+                4 0 136363 5806 1 \\
+                5 0 137178 7347 1 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+    \qquad
+    \subfloat[계산 시간 평균]{
+        \begin{tikzpicture}[scale=0.72 ,domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={누적 계산 시간(초)}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 0 0 0 \\
+                2 0 5.33 0.22 0 \\
+                3 0 96.78 4.36 0 \\
+            };
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 0 0 1 \\
+                2 0 3.80 0.14 1 \\
+                3 0 7.26 0.25 1 \\
+                4 0 16.71 0.43 1 \\
+                5 0 26.04 0.80 1 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+    \qquad
+    \subfloat[사용 메모리 평균]{
+        \begin{tikzpicture}[scale=0.72 ,domain=0:6]
+            \begin{axis}[xlabel={미래에 보는 블록 수}, ylabel={누적 사용 메모리(MB)}, width=0.4\textwidth]
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 7.40 0.17 0 \\
+                2 0 176.72 3.52 0 \\
+                3 0 4349.17 197.27 0 \\
+            };
+            \addplot[scatter, scatter src=\thisrow{class},
+                  error bars/.cd, y dir=both, x dir=both, y explicit, x explicit, error bar style={color=mapped color}]
+                  table[x=x,y=y,x error=xerr,y error=yerr, row sep=crcr] {
+                x xerr y yerr class \\
+                1 0 7.29 0.22 1 \\
+                2 0 168.31 3.82 1 \\
+                3 0 397.50 4.97 1 \\
+                4 0 630.41 12.44 1 \\
+                5 0 856.28 12.78 1 \\
+            };
+            \end{axis}
+        \end{tikzpicture}
+    }%
+\end{figure}
+
+점수 평균에서는 가지치기를 했을 때의 결과가 약간 더 좋았으나 의미 있는 차이가 보이지 않았다.
+또한 가지치기를 하지 않았을 때 미래에 3블록을 보는 경우 기하급수적으로 계산 시간과 사용 메모리가
+늘어났음을 확인할 수 있다. 종합해 보면 가지치기는 시간, 공간적 측면 모두에서 결정 트리를
+효율적으로 사용할 수 있게 해 주는 수단이라는 것을 확인할 수 있다.
+
+가지치기를 했을 때의 단점은 최선의 상태를 버릴 수 있다는 가능성이 존재하는 것이었으나, 실제 점수를 비교했을 때
+유의미한 차이가 없었던 것으로 미루어 보아 가지치기를 했을 때 얻을 수 있는 장점이 단점보다 훨씬 크다고 판단된다.
+
+\section{토의}
+
+추천 알고리즘은 클래식 테트리스를 바탕으로 개발되었다. 클래식 테트리스는 모던 테트리스에 있는 홀드, T-스핀, 벽에서의 회전 등의 기능이 없다.
+기회가 된다면 모던 테트리스 규칙으로 추천 알고리즘을 작성해 보고 싶다.
+
+\end{document}
