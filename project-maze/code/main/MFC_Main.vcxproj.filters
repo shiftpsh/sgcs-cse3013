@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="App Main">
+      <UniqueIdentifier>{89754e39-8618-472c-bd82-3555b91e2806}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App Main\Source Files">
+      <UniqueIdentifier>{95107d7e-f5b6-43df-bd5d-9acb538450f5}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="App Main\Header Files">
+      <UniqueIdentifier>{ac6073d8-21bf-4b78-acdb-5fdfcd352229}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="App Main\Resource Files">
+      <UniqueIdentifier>{f5299e68-a5fa-489f-a7c4-486e14bb4bfb}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{3674e433-e9cf-4c7a-993e-dcb5af71b365}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Graphics Sources">
+      <UniqueIdentifier>{5abe5505-5c71-4753-b77f-5f1f00b42169}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+    <Filter Include="Graphics\Graphics Headers">
+      <UniqueIdentifier>{1d2f8418-15f8-46b0-8ff8-709d19b7f32a}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{e5811ad4-c3bc-48c9-a2a7-45652c74b4e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\UI Sources">
+      <UniqueIdentifier>{7b1a6186-64b7-4ba9-b46d-52c4a0f0f890}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+    <Filter Include="UI\UI Headers">
+      <UniqueIdentifier>{7d4c973a-b5c6-42c8-bd16-183297eb5c74}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{0218c08f-dd31-4579-a4fd-6b1efd0b0658}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\Util Headers">
+      <UniqueIdentifier>{f2f8af7b-0bdd-47e0-8f2e-24b466bdfbcc}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Util\Util Sources">
+      <UniqueIdentifier>{555b96c6-c0bc-49e9-a3d1-b3de081eee93}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+    <Filter Include="Example">
+      <UniqueIdentifier>{165d84b1-cd63-43b7-845f-855d099baece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="User Code">
+      <UniqueIdentifier>{91bdcc2c-e931-4d91-9ffa-33556121211e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ExternDoc.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExternView.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MFC_Main.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MFC_MainDoc.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MFC_MainView.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>App Main\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Clipping.cpp">
+      <Filter>Graphics\Graphics Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\DrawFunc.cpp">
+      <Filter>Graphics\Graphics Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Ui\MsgView.cpp">
+      <Filter>UI\UI Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Ui\RubberBand.cpp">
+      <Filter>UI\UI Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Ui\Scroll.cpp">
+      <Filter>UI\UI Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Ui\Zoom.cpp">
+      <Filter>UI\UI Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\Math.cpp">
+      <Filter>Util\Util Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\StringTokenizer.cpp">
+      <Filter>Util\Util Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Example\Example.cpp">
+      <Filter>Example</Filter>
+    </ClCompile>
+    <ClCompile Include="User Code\usercode.cpp">
+      <Filter>User Code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MFC_Main.rc">
+      <Filter>App Main\Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ExternDoc.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExternView.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MFC_Main.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MFC_MainDoc.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MFC_MainView.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>App Main\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Clipping.h">
+      <Filter>Graphics\Graphics Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\DrawFunc.h">
+      <Filter>Graphics\Graphics Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Graphics_DS.h">
+      <Filter>Graphics\Graphics Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Ui\MsgView.h">
+      <Filter>UI\UI Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Ui\RubberBand.h">
+      <Filter>UI\UI Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Ui\Scroll.h">
+      <Filter>UI\UI Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Ui\Zoom.h">
+      <Filter>UI\UI Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Math.h">
+      <Filter>Util\Util Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\StringTokenizer.h">
+      <Filter>Util\Util Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Example\Example.h">
+      <Filter>Example</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\MFC_Main.ico">
+      <Filter>App Main\Resource Files</Filter>
+    </None>
+    <None Include="res\MFC_Main.rc2">
+      <Filter>App Main\Resource Files</Filter>
+    </None>
+    <None Include="res\MFC_MainDoc.ico">
+      <Filter>App Main\Resource Files</Filter>
+    </None>
+    <None Include="res\Toolbar.bmp">
+      <Filter>App Main\Resource Files</Filter>
+    </None>
+    <None Include="res\zoom.cur">
+      <Filter>App Main\Resource Files</Filter>
+    </None>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

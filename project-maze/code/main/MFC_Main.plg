@@ -1,0 +1,72 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: MFC_Main - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\WINDOWS\TEMP\RSP82D6.TMP" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "GRAPHICS_BUFFERED" /FR"Debug/" /Fp"Debug/MFC_Main.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\User\Jay\Project\MFC_Main\MFC_Main\MFC_MainView.cpp"
+]
+Creating command line "cl.exe @C:\WINDOWS\TEMP\RSP82D6.TMP" 
+Creating temporary file "C:\WINDOWS\TEMP\RSP82D7.TMP" with contents
+[
+/nologo /subsystem:windows /incremental:yes /pdb:"Debug/MFC_Main.pdb" /debug /machine:I386 /out:"Debug/MFC_Main.exe" /pdbtype:sept 
+.\Debug\ExternDoc.obj
+.\Debug\ExternView.obj
+.\Debug\MainFrm.obj
+.\Debug\MFC_Main.obj
+.\Debug\MFC_MainDoc.obj
+.\Debug\MFC_MainView.obj
+.\Debug\StdAfx.obj
+.\Debug\Clipping.obj
+.\Debug\DrawFunc.obj
+.\Debug\MsgView.obj
+.\Debug\RubberBand.obj
+.\Debug\Scroll.obj
+.\Debug\Zoom.obj
+.\Debug\Math.obj
+.\Debug\StringTokenizer.obj
+.\Debug\Example.obj
+.\Debug\MFC_Main.res
+.\Debug\s20001234.obj
+]
+Creating command line "link.exe @C:\WINDOWS\TEMP\RSP82D7.TMP"
+<h3>Output Window</h3>
+Compiling...
+MFC_MainView.cpp
+Linking...
+Creating temporary file "C:\WINDOWS\TEMP\RSP9010.TMP" with contents
+[
+/nologo /o"Debug/MFC_Main.bsc" 
+.\Debug\StdAfx.sbr
+.\Debug\ExternDoc.sbr
+.\Debug\ExternView.sbr
+.\Debug\MainFrm.sbr
+.\Debug\MFC_Main.sbr
+.\Debug\MFC_MainDoc.sbr
+.\Debug\MFC_MainView.sbr
+.\Debug\Clipping.sbr
+.\Debug\DrawFunc.sbr
+.\Debug\MsgView.sbr
+.\Debug\RubberBand.sbr
+.\Debug\Scroll.sbr
+.\Debug\Zoom.sbr
+.\Debug\Math.sbr
+.\Debug\StringTokenizer.sbr
+.\Debug\Example.sbr
+.\Debug\s20001234.sbr]
+Creating command line "bscmake.exe @C:\WINDOWS\TEMP\RSP9010.TMP"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+MFC_Main.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="MFC_Main">
+</Property><Property Name="솔루션 파일" Value="C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\MFC_Main.sln">
+</Property><Property Name="Date" Value="2011년 8월 29일 월요일">
+</Property><Property Name="Time" Value="오후 15:07">
+</Property></Properties><Event ErrorLevel="0" Project="MFC_Main" Source="MFC_Main.vcproj" Description="Converting project file 'C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\MFC_Main.vcproj'.">
+</Event><Event ErrorLevel="1" Project="MFC_Main" Source="MFC_Main.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="MFC_Main" Source="MFC_Main.vcproj" Description="MSB8012: $(TargetPath) ('C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\.\Debug\MFC_Main.exe') does not match the Linker's OutputFile property value '.\Debug/MFC_Main.exe' ('C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\Debug/MFC_Main.exe') in project configuration 'Debug|Win32'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="1" Project="MFC_Main" Source="MFC_Main.vcproj" Description="MSB8012: $(TargetPath) ('C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\.\Release\MFC_Main.exe') does not match the Linker's OutputFile property value '.\Release/MFC_Main.exe' ('C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\Release/MFC_Main.exe') in project configuration 'Release|Win32'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="0" Project="MFC_Main" Source="MFC_Main.vcproj" Description="Done converting to new project file 'C:\Users\R912COM\Desktop\Graphic 툴킷\MFC_Main_vs2008\MFC_Main.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="MFC_Main" Source="MFC_Main.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="MFC_Main.sln" Description="솔루션을 변환했습니다.">
+</Event><Event ErrorLevel="3" Project="" Source="MFC_Main.sln" Description="Converted">
+</Event></UpgradeLog>
