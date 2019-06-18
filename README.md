@@ -1,11 +1,11 @@
-# sgcs-cse3013
+# 컴퓨터공학 설계 및 실험 I
 
 CSE3013 - Computer Science and Engineering Laboratory I
 
 2019년 1학기 / 장형수 교수님
 
 - 회사 등에서 실제로 사용되는 기술들을 다뤄봅니다.
-- 템플릿 코드가 주어지고 그 위에 구현하는 일이 잦기 때문에 컨벤션이 뒤죽박죽이거나 문법이 낡은 경우들ㄴ도 있으니 유의하시기 바랍니다. 
+- 템플릿 코드가 주어지고 그 위에 구현하는 일이 잦기 때문에 컨벤션이 뒤죽박죽이거나 문법이 낡은 경우들도 있으니 유의하시기 바랍니다. 
 
 - 1-8주차: [실험](experiments)
     - 1주차: [HTML](experiments/week01-web1), [PHP](experiments/week01-web2)
