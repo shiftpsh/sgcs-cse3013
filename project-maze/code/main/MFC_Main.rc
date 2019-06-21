@@ -65,9 +65,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\MFC_Main.ico"
-
 IDR_MFC_MATYPE          ICON                    "res\\MFC_MainDoc.ico"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -75,7 +73,6 @@ IDR_MFC_MATYPE          ICON                    "res\\MFC_MainDoc.ico"
 //
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -94,7 +91,7 @@ BEGIN
     BUTTON      ID_FILE_PRINT
     SEPARATOR
     BUTTON      ID_APP_ABOUT
-    BUTTON      ID_TOOLS_BFS
+    BUTTON      ID_TOOLS_DFS
     BUTTON      ID_TOOLS_BFS
 END
 
@@ -246,7 +243,6 @@ END
 //
 
 IDC_ZOOM                CURSOR                  "res\\zoom.cur"
-
 
 /////////////////////////////////////////////////////////////////////////////
 //

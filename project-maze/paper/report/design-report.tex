@@ -1,0 +1,132 @@
+\input{../../../header}
+
+\usepackage{color}
+\usepackage{pgfplots}
+
+\newdimen\omsq     \omsq=20pt
+\newdimen\omrule   \omrule=2pt
+\newdimen\omint
+
+\newif\ifvth    \newif\ifhth    \newif\ifomblank
+\def\OMINO#1{%
+    \vthtrue \hthtrue
+    \vbox{ \offinterlineskip\parindent=0pt \OM#1\relax\vskip1pt}
+    }
+
+\def\OM#1{%
+    \omint=\omsq    \advance\omint-\omrule
+    \ifx\relax#1%
+    \else
+      \ifx\\#1 \newline\null \hthtrue \ifvth\vthfalse\else\vskip-\omrule\vthtrue\fi
+      \else%
+        \ifx .#1\hskip\ifhth \omrule\else \omint\fi
+        \else%
+          \ifx +#1\def\colour{black}\fi%
+          \ifx -#1\def\colour{black}\fi%
+          \ifx |#1\def\colour{black}\fi%
+          \ifx @#1\def\colour{black}\fi%
+          \ifx X#1\def\colour{gray}\fi%
+          \ifx Z#1\def\colour{red}\fi%
+          \ifx S#1\def\colour{green}\fi%
+          \ifx L#1\def\colour{orange}\fi%
+          \ifx J#1\def\colour{blue}\fi%
+          \ifx O#1\def\colour{yellow}\fi%
+          \ifx T#1\def\colour{magenta}\fi%
+          \ifx I#1\def\colour{cyan}\fi%
+          \textcolor{\colour}{\rule{\ifhth\omrule\else\omsq\fi}{\ifvth\omrule\else\omsq\fi}}%
+          \ifhth\else\hskip -\omrule\fi%
+        \fi%
+        \ifhth\hthfalse\else\hthtrue\fi%
+      \fi%
+    \expandafter\OM%
+    \fi}
+
+\makeatother
+
+\usepackage{wrapfig}
+\usepackage{subfig}
+
+\begin{document}
+
+\title{CSE3013 (컴퓨터공학 설계 및 실험 I) \space \newline 미로 프로젝트}
+\author{서강대학교 컴퓨터공학과 박수현 (20181634)}
+\institute{제 2분반; 담당교수: 서강대학교 컴퓨터공학과 장형수}
+\maketitle
+
+\section{설계 문제 및 목표}
+
+미로 프로젝트에서는 미로를 만드는 프로그램과 미로를 보여주는 GUI 프로그램, 그리고 미로에서 가장 짧은 경로를 찾는 프로그램을 제작한다.
+
+미로 프로젝트 1주차 실습에선 완전 미로를 생성하는 프로그램을 제작한다. 완전 미로란 임의의 서로 다른 출발점과 도착점을 연결하는 경로가 오직 하나만 존재하는 미로를 의미한다.
+완전미로를 생성하기 위한 알고리즘으로 recursive backtracker, Kruskal's algorithm, Prim's algorithm, Eller's algorithm 중 하나를 택할 수 있다.
+1주차 숙제는 순환 경로가 존재하는 불완전한 미로를 생성하는 프로그램을 제작하는 것이다. 순환 경로가 존재하는 불완전한 미로란 폐쇄된 공간은 존재하지 않으나 두 지점을 연결하는 경로가
+하나 이상 존재하는 미로를 말한다. 실습과 숙제 모두 확장자가 .maz인 파일로 미로를 출력한다.
+
+미로 프로젝트 2주차 실습에선 1주차에서 만든 프로그램이 생성한 미로(확장자가 .maz인 파일의 내용)를 읽어 들여, MFC가 제공하는 윈도우 환경에서의 GUI로 그 미로를 그려내는 프로그램을
+제작해야 한다. 이를 위해 미로를 표현하기 위한 효율적인 자료구조를 선택하여 활용한다. 여기에 3주차 프로젝트 내용을 위한 DFS 버튼과 BFS 버튼을 추가하는 것이 2주차의 숙제이다.
+
+미로 프로젝트 3주차에선 2주차에서 만들어진 프로그램에 가장 짧은 경로를 찾는 기능을 제공하도록 하는 것이다. 경로를 찾는 방법은 DFS(3주차 실습)와 BFS(3주차 숙제)를 사용한다.
+이 때, MFC의 GUI를 이용하여 탐색 과정과 결과를 사용자에게 보여주어야 한다.
+
+\section{요구사항}
+\subsection{설계 목표 설정}
+% 미로 프로젝트의 각 주차별 프로그램을 설계하는 과정에서의 목표를 설정하고, 그 과정에서 요구되는 사항들을 정리한다.
+\import{inc-sections/}{2-1.tex}
+
+\subsection{합성}
+% 미로 프로젝트의 각 주차별 프로그램의 설계 및 구현을 위해 요구되는 이론, 자료구조, 알고리즘 등을 조사 분석하여 전체적인 설계를 수행한다.
+\import{inc-sections/}{2-2.tex}
+
+\newpage
+\subsection{분석}
+% 미로 프로젝트의 각 주차별 문제에 대해 기술하고, 상기 단계에서 설계한 알고리즘에 기반을 두어 목표로 하는 프로그램을 효과적으로 개발하는데 필요한 프로그램 기법들과
+% 자료구조에 대하여 조사 분석하여 그것을 바탕으로 전체 프로그램 순서도를 작성한다. 또한 이러한 프로그램을 개발하는데 있어 고려해야할 모든 요소, 예를 들어, 입출력 양식,
+% 관련 자료구조와 이론, 사용할 C언어 함수의 사용법 등 모든 가능한 고려 사항을 정리한다.
+\import{inc-sections/}{2-3-week1.tex}
+\import{inc-sections/}{2-3-week2.tex}
+\import{inc-sections/}{2-3-week3.tex}
+
+\subsection{제작}
+% 위에서 설계한 내용을 C언어를 사용해 구현한다. 구현 후 프로그램의 각 구성요소를 상세히 분석하여 구현방법을 프로그램 기법과 정리한 이론 등과 연관 지어 정리한다.
+
+% For some reasons, my minted doesn't recognize files with its filename containing '_'.
+\import{inc-sections/}{2-4.tex}
+
+\subsection{시험}
+% 위의 과정에서 수행한 문제 정의, 프로그램 순서도와 순서도 상의 각 부분 역할 및 구현 방법, 프로그램의 구현 방법, 구현 방법의 이론과의 연관성, 구현한 프로그램의 내용, 수행화면 등을 정리한다. 
+\import{inc-sections/}{2-5.tex}
+
+\subsection{평가}
+% 문제와 이론의 연관성이 적절한지, 순서도와 실제 구현 사이에 차이는 없는지, 프로그램은 잘 동작하는지 등을 평가한다. 
+\import{inc-sections/}{2-6.tex}
+
+\subsection{환경}
+MFC를 이용한 윈도우 프로그래밍이 요구되므로, 미로 프로젝트의 각 프로그램은 윈도우 환경에서 제작된다.
+% (이 내용은 그대로 둘 것)
+
+\subsection{미학}
+프로젝트에서 정의하고 있는 미로의 모습대로 미로를 만들어야 하고, 이를 GUI 프로그램으로 그려내는 경우 또한 프로젝트에서 정의하고 있는 모습대로 그려야 한다. 
+
+\subsection{보건 및 안정}
+% 프로젝트에서 정의하고 있지 않은 입력으로 인한 프로그램의 오동작이 없어야 한다. 또한 프로그램 동작 중에 일어날 수 있는 오류에 대처할 수 있어야 한다.
+입력되는 미로 파일의 포맷이 잘못되었을 경우 오동작이 발생할 수 있다. 이외의 경우 프로그램은 안정적이다.
+
+\section{기타}
+\subsection{환경 구성}
+% 실제 프로젝트를 수행한 환경에 대해 구체적으로 기술한다. 프로젝트 수행에 사용된 하드웨어 및 소프트웨어의 상세 정보를 정리한다.
+\import{inc-sections/}{3-1.tex}
+
+\subsection{참고 사항}
+% 프로젝트의 수행 시 참고 사항에 대해서 기술한다.(참고 사항이 없으면 ‘참고사항 없음’, 있다면 그 내용을 적는다.)
+특별히 참고할 만한 사항은 없다.
+
+\subsection{팀 구성}
+% (팀 구성 관련 사항을 기입. 예: ‘첫 번째 프로젝트 팀 구성을 유지한다. 본 프로젝트에 대한 각 구성원의 기여사항을 보고서에 명시하도록 한다.’
+% 이 프로젝트는 개인 프로젝트이므로 팀 구성이 1명이다. 자신의 이름을 쓰고 100%로 기술하도록 한다.)
+서강대학교 컴퓨터공학과 박수현 (20181634) 100\% 기여. 개인 프로젝트로 진행하였다.
+
+\subsection{수행기간}
+% (테트리스 1주차 실습 수업일부터 제출 마감일까지로 기입)
+2019년 5월 27일부터 2019년 6월 21일까지.
+
+\end{document}

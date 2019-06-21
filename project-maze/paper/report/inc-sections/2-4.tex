@@ -1,0 +1,74 @@
+\textbf{2.3}에서 설명한 이론과 실제 코드를 비교하고 분석한다.
+
+프로젝트에서 수정하여야 하는 주요 파일들은 다음과 같다. 
+
+\begin{tabularx}{\linewidth}{l|X}
+    파일 이름 & 기능 \\
+    \hline
+    generate_perfect_maze.c & 완전 미로를 생성하는 C 소스 \\
+    generate_imperfect_maze.c & 불완전 미로를 생성하는 C 소스 \\
+    \hline
+    MFC_Main.rc & MFC 프로젝트에서 리소스들을 정의하고 있는 파일 \\
+    User Code/usercode.cpp & 미로를 읽고, DFS와 BFS를 진행하고, 화면에 그리는 등 핵심적인 로직이 들어가는 부분 \\
+\end{tabularx}
+
+\subsubsection{미로 프로젝트 1주차} 1주차에 구현된 사항은 다음과 같다.
+
+\textbf{generate_perfect_maze.c}: 완전 미로를 생성한다. 이론의 의사 코드를 그대로 구현했다.
+
+\textbf{generate_imperfect_maze.c}: 완전 미로를 생성한다. 이론의 의사 코드를 그대로 구현했다.
+
+\subsubsection{미로 프로젝트 2주차} 2주차에 구현된 사항은 다음과 같다.
+
+\textbf{화면에 미로를 그리는 로직}: 의사 코드를 그대로 구현했으나, 실제 구현에서는 미로에 그레이디언트를 추가했다. 아래는 실제 구현된 코드이다.
+
+\begin{minted}[xleftmargin=\parindent,breaklines,linenos]{c++}
+static void drawBuffered(){
+    for (int i = 0; i < rows; i++) {
+        int x = CELL_SIZE * (i / 2) + WALL_WIDTH * (i - i / 2);
+        for (int j = 0; j < cols; j++) {
+            int y = CELL_SIZE * (j / 2) + WALL_WIDTH * (j - j / 2);
+            
+            // this adds gradients just for fun
+            double blend = (double) (i + j) / (rows + cols);
+            COLORREF color = RGB(
+                0x00 * (1 - blend) + 0x9c * blend,
+                0xbc * (1 - blend) + 0x27 * blend,
+                0xd4 * (1 - blend) + 0xb0 * blend
+                );
+            
+            switch (field[i][j]) {
+                case '+':
+                    DrawSolidBox_I(y, x,
+                        y + WALL_WIDTH, x + WALL_WIDTH,
+                        0, color, color);
+                    break;
+                case '-':
+                    DrawSolidBox_I(y, x,
+                        y + CELL_SIZE, x + WALL_WIDTH,
+                        0, color, color);
+                    break;
+                case '|':
+                    DrawSolidBox_I(y, x,
+                        y + WALL_WIDTH, x + CELL_SIZE,
+                        0, color, color);
+                    break;
+            }
+        }
+    }
+}
+\end{minted}
+
+\textbf{툴바에 메뉴와 버튼 추가}: Event Handler Wizard를 이용해 메뉴를 추가했으며, MFC_MainDoc.cpp의 코드에서는 다음과 같은 항목들이 추가되았다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=31,lastline=40]{c++}{inc-sources/MainDoc.cpp}
+
+\subsubsection{미로 프로젝트 3주차} 3주차에 구현된 사항은 다음과 같다.
+
+\textbf{DFS/BFS}: 의사 코드를 그대로 구현했으나, 실제 구현에서는 방문한 경로를 저장하는 방식을 구체화하였다. 다음은 BFS에서 방문하는 경로를 저장하는 로직을 추가한 코드이다.
+
+\inputminted[xleftmargin=\parindent,linenos,firstline=323,lastline=358]{c++}{inc-sources/usercode.cpp}
+
+위의 코드에서 \texttt{visited\_cells}, \texttt{prev\_cell}을 참조한다.
+
+또한 최단 경로를 그리기 위해 \texttt{drawBuffered} 함수에 줄 186--251을 추가하였다.

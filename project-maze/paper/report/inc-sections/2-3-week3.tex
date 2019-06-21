@@ -1,0 +1,23 @@
+\subsubsection{3주차: 그래프를 탐색하는 로직} 그래프를 DFS와 BFS 두 방법을 사용해 탐색한다.
+
+배열의 좌상단 인덱스 $\left(0,\,0\right)$, 크기를 $n\times m$이라고 할 때, 미로의 시작점은 $\left(1,\,1\right)$이고, 
+종점은 $\left(n-2,\,m-2\right)$이고, 어떤 칸 $\left(x,\,y\right)$를 노드라고 생각할 때 그 노드에 연결된 노드들은 인접한 상하좌우 4칸, 즉
+$\left(x + 1,\,y\right)$, $\left(x - 1,\,y\right)$, $\left(x,\,y + 1\right)$, $\left(x,\,y - 1\right)$로 생각할 수 있다.
+
+각 탐색 알고리즘의 구현은 다음과 같았다.
+
+\begin{itemize}
+    \item \textbf{DFS} -- 스택 $S$를 정의한다. $S$에 첫 노드를 넣고,
+    $S$의 첫 원소 $s$에 대해 $N\left(s\right)$ 중 아직 방문하지 않은 정점들을 전부 $S$에 추가하고,
+    $S$의 첫 원소를 제거한다. 이를 $S$가 빌 때까지 반복한다. 
+    \item \textbf{BFS} -- 큐 $Q$를 정의한다. $Q$에 첫 노드를 넣고,
+    $Q$의 첫 원소 $q$에 대해 $N\left(q\right)$ 중 아직 방문하지 않은 정점들을 전부 $Q$에 추가하고,
+    $Q$의 첫 원소를 제거한다. 이를 $Q$가 빌 때까지 반복한다. 
+\end{itemize}
+
+세부적으로, $p=\left(p_x,\,p_y\right)$에 대해
+$N\left(p\right)=\left\{\left(p_x + 1,\,p_y\right),\,\left(p_x - 1,\,p_y\right),\,\left(p_x,\,p_y + 1\right),\,\left(p_x,\,p_y - 1\right)\right\}$
+으로 정의할 수 있다.
+
+방문 여부를 체크하기 위한 $n\times m$ 배열을 따로 만들어 관리한다. 각각의 알고리즘에서 최악의 경우 스택이나 큐에 $n\times m$개의 원소가 들어가고 나온다.
+따라서 각각 알고리즘의 공간 복잡도는 $\mathcal{O}\left(n\times m\right)$이며, 시간 복잡도도 마찬가지다.

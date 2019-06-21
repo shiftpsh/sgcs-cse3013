@@ -33,10 +33,10 @@ BEGIN_MESSAGE_MAP(CMFC_MainDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_FILE_CLOSE, OnUpdateFileClose)
 	ON_COMMAND(ID_FILE_CLOSE, OnFileClose)
 	//}}AFX_MSG_MAP
+	ON_COMMAND(ID_TOOLS_DFS, &CMFC_MainDoc::OnToolsDfs)
+    ON_COMMAND(ID_TOOLS_BFS, &CMFC_MainDoc::OnToolsBfs)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_DFS, &CMFC_MainDoc::OnUpdateToolsDfs)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_BFS, &CMFC_MainDoc::OnUpdateToolsBfs)
-    ON_COMMAND(ID_TOOLS_DFS, &CMFC_MainDoc::OnToolsDfs)
-    ON_COMMAND(ID_TOOLS_BFS, &CMFC_MainDoc::OnToolsBfs)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
