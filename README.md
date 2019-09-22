@@ -20,4 +20,4 @@ CSE3013 - Computer Science and Engineering Laboratory I
 
 - 12-14주차: [미로 프로젝트](project-maze)
 
-- [기말고사 코드](final) (문제 미포함)
+- [기말 코드](final) (문제 미포함)
